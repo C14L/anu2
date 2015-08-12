@@ -1,0 +1,6 @@
+# More in: ~/dev/global-settings/.gitignore
+
+www/
+dtrcity/
+static_collected/
+image_with_thumbnail_field.py
