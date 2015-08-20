@@ -1,0 +1,311 @@
+<html lang="en" ng-app="AnunciosApp">
+  <head>
+    <meta name="viewport" content="initial-scale=1" />
+    <base href="/"></base>
+    <title></title>
+    <meta name="description" content="">
+    <meta name="robots" content="">
+    <link rel="canonical" href="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.9.4/angular-material.min.css">
+    <style>
+
+.md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
+
+.category-list-view a { color: inherit; text-decoration: inherit; }
+.category-list-view a:hover { color: #0000FF; text-decoration: underline; }
+
+    </style>
+    <script>
+
+var LOG = window.LOG || true;
+
+function setTitle(s){window.document.title=s;}
+function setRobots(s){window.document.head.querySelector('meta[name="robots"]')['content']=s;}
+function setDescription(s){window.document.head.querySelector('meta[name="description"]')['content']=s;}
+function getRandomInt(min,max){/*Random int: min <= x < max */return Math.floor(Math.random()*(max-min))+min;}
+function setCanonical(s){window.document.head.querySelector('link[rel="canonical"]')['href']=s;}
+
+    </script>
+  </head>
+  <body layout="column" ng-controller="AppCtrl">
+    <md-toolbar layout="row">
+      <div class="md-toolbar-tools">
+        <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
+          <md-icon md-svg-src="/static/icons/menu.svg" aria-label="Menu"></md-icon>
+        </md-button>
+        <h1><a href="{{page.home_url}}">{{page.h1}}</a></h1>
+      </div>
+    </md-toolbar>
+
+    <div layout="row" flex>
+      <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
+        <div hide-gt-md class="md-toolbar-tools">
+          <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
+            <md-icon md-svg-src="/static/icons/close.svg" aria-label="Close"></md-icon>
+          </md-button>
+          <h1>{{site.title}}</h1>
+        </div>
+        <md-list>
+          <md-list-item class="md-2-line" ng-repeat="item in sidebarList">
+            <md-checkbox ng-model="item.done"></md-checkbox>
+            <div class="md-list-item-text">
+              <h3 ng-bind="item.title"></h3>
+              <p ng-bind="item.description"></p>
+            </div>
+          </md-list-item>
+        </md-list>
+      </md-sidenav>
+      <md-content id="content" layout="column" flex class="md-padding" ng-view="main">
+          Loading...
+      </md-content>
+    </div>
+  </body>
+
+<!--
+// Templates //////////////////////////////////////////////////////////////////
+-->
+
+  <script type="text/ng-template" id="home.html">
+
+    <div>
+      <h2>{{tr('Encuentra clasificados en tu ciudad:')}}</h2>
+      <md-autocomplete 
+          md-selected-item-change="locationSelected(selectedItem)"
+          md-selected-item="selectedItem" 
+          md-search-text="searchText" 
+          md-items="item in getMatches(searchText)" 
+          md-item-text="item"
+          md-delay="300"
+          md-min-length="3"
+          md-input-minlength="10"
+          md-input-maxlength="100"
+          md-autofocus="1"
+          md-autoselect="1"
+          md-select-on-match="1"
+          placeholder="{{tr('Escribe unos letras del nombre de tu ciudad...')}}">
+        <md-item-template>
+          <span md-highlight-text="searchText">{{item}}</span>
+        </md-item-template>
+        <md-not-found>
+          {{tr("No se encontró ninguna ciudad con este nombre.")}}
+        </md-not-found>
+      </md-autocomplete>
+    </div>
+
+    <div class="home-view category-list-view">
+      <div ng-repeat="(slug, root) in categoryTree track by slug">
+        <h2><a ng-href="{{loc.url}}/{{root.slug}}">{{root.title}} in {{loc.city_name}}</a></h2>
+        <div ng-repeat="child in root.children track by child.slug">
+          <a ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}">{{child.title}}</a>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="location.html">
+    <div class="location-view category-list-view">
+      <p>location view
+      <div ng-repeat="(slug, root) in categoryTree track by slug">
+        <h2><a ng-href="{{loc.url}}/{{root.slug}}">{{root.title}} in {{loc.city_name}}</a></h2>
+        <div ng-repeat="child in root.children track by child.slug">
+          <a ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}">{{child.title}}</a>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="category.html">
+    <div class="category-view item-list-view">
+      <p>category view: {{category.title}}
+      <p>parent category: {{category.parent.title}}
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="categorygroup.html">
+    <div class="categorygroup-view category-list-view">
+      categorygroup view
+    </div>
+  </script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-aria.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.js"></script>
+  <script src="static/src/utils.js"></script>
+  <script>
+
+var app = angular.module('AnunciosApp', ['ngRoute', 'ngMaterial']);
+
+// Setup //////////////////////////////////////////////////////////////////////
+
+app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
+    $locationProvider.html5Mode(true);
+    $routeProvider
+    .when( '/', {
+        controller: 'HomeController', // show home page
+        templateUrl: 'home.html'
+    })
+    .when( '/:country/:region/:city', {
+        controller: 'LocationController',
+        templateUrl: 'location.html'
+    })
+    .when( '/:country/:region/:city/:cgroup', {
+        controller: 'CategoryGroupController',
+        templateUrl: 'categorygroup.html'
+    })
+    .when( '/:country/:region/:city/:cgroup/:category', {
+        controller: 'CategoryController',
+        templateUrl: 'category.html'
+    })
+    .otherwise({ redirectTo: '/' });
+}]);
+
+app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
+  $rootScope.categoryTree = {};
+  $rootScope.site = {
+    'title': 'Anuncios1.com'
+  };
+  $rootScope.page = {
+    'h1': 'Anuncios Clasificados', 
+    'title': 'Anuncios Clasificados - Anuncios1.com',
+    'home_url': '/'
+  };
+
+  $rootScope.categoriesPromise = $http.get('/api/v1/categories/').then(function(res){
+    $rootScope.loc = res['data']['location'];
+    $rootScope.categories = res['data']['categories'];
+
+    for (var i=0; i<$rootScope.categories.length; i++){
+      var item = $rootScope.categories[i];
+      if (!item['parent']){
+        $rootScope.categoryTree[item['slug']] = item;
+        $rootScope.categoryTree[item['slug']]['children'] = [];
+      }
+    }
+    for (var i=0; i<$rootScope.categories.length; i++){
+      var item = $rootScope.categories[i];
+      if (item['parent']){
+        if ($rootScope.categoryTree[item['parent']]){
+          $rootScope.categoryTree[item['parent']]['children'].push(item) 
+        } else {
+          log('Can not add item "'+item['slug']+'", because parent "'+item['parent']+'" does not exist!');
+        }
+      }
+    }
+
+    $rootScope.tr = function(str, arr){ return tr(str, arr); }
+
+    $rootScope.getCategory = function(slug){
+      /* Return category by slug, including parent etc data */
+      var li = $rootScope.categories.filter(function(el){ return el.slug == slug; });
+      if (li.length < 1) return null;
+      if (li.length > 0) {
+        if (li[0]['parent']) li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
+        return li[0];
+      }
+    }
+
+    //log($rootScope.categories);
+    //log($rootScope.categoryTree);
+  });
+}]);
+
+// Controller /////////////////////////////////////////////////////////////////
+
+app.controller('HomeController', ['$scope', '$http', '$window', function($scope, $http, $window){
+  $scope.page['title'] = tr("Anuncios Clasificados", []);
+  $scope.page['h1'] = $scope.page['title'];
+  $scope.page['description'] = tr("Anuncios clasificados locales de tu ciudad, encuentra todas las mejores ofertas y artículos interesantes.", []);
+  setTitle($scope.page['title']);
+  setDescription($scope.page['description']);
+
+  $scope.getMatches = function(searchText){
+    /* Return a list of matches for the autocomplete input city finder. */
+    if (searchText.length < 2) return [];
+    var url = '/dtrcity/api/v1/autocomplete-crc.json';
+    var params = { 'params': { 'q': searchText }};
+    return $http.get(url, params).then(
+      function(response){
+        return response.data; 
+      }
+    );
+  };
+  $scope.locationSelected = function(item){
+    if (!item) return;
+    log('Location selected: "' + item.name + '".');
+    $window.location.href = item.url;
+  }
+
+  // Try to get the user's geolocation and redirect them to their own city's
+  // content page automatically. See http://diveintohtml5.info/geolocation.html
+  // The browser's "loc" object contains user's latitude and longitude in the
+  // loc.coords.latitude and loc.coords.longitude properties. Look up  the
+  // nearest city in Geonames database.
+  navigator.geolocation.getCurrentPosition(function(loc, timestamp){
+    var url = 'dtrcity/api/v1/city-by-latlng.json';
+    var params = { params: { 'latitude': loc.coords.latitude, 'longitude': loc.coords.longitude, 'accuracy': loc.coords.accuracy }};
+    $http.get(url, params).then(
+      function(response){
+        $scope.loc = response.data;
+      }, function(response){
+        $scope.isManualCityFinder = true;
+      }
+    );
+  }, function(err){
+    $scope.isManualCityFinder = true;
+  });
+}]);
+
+app.controller('LocationController', ['$scope', '$routeParams', function($scope, $routeParams){
+  $scope.categoriesPromise.then(function(){
+    $scope.category = $scope.getCategory($routeParams['category']);
+
+    $scope.page['home_url'] = '/';
+    $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.loc['crc']]);
+    $scope.page['h1'] = $scope.page['title'];
+    $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.loc['crc'], $scope.loc['city_name'], $scope.loc['country_name']]);
+    setTitle($scope.page['title']);
+    setDescription($scope.page['description']);
+  });
+}]);
+
+app.controller('CategoryController', ['$scope', '$routeParams', function($scope, $routeParams){
+  $scope.categoriesPromise.then(function(){
+    $scope.category = $scope.getCategory($routeParams['category']);
+
+    $scope.page['home_url'] = '/' + $scope.loc['url'];
+    $scope.page['title'] = tr("{2} > {0} > {1}", [$scope.category['parent']['title'], $scope.category['title'], $scope.loc['city_name']]);
+    $scope.page['h1'] = $scope.page['title'];
+    $scope.page['description'] = tr("", []);
+    setTitle($scope.page['title']);
+    setDescription($scope.page['description']);
+  });
+}]);
+
+app.controller('CategoryGroupController', ['$scope', '$routeParams', function($scope, $routeParams){
+  $scope.categoriesPromise.then(function(){
+    
+    $scope.page['home_url'] = '/' + $scope.loc['url'];
+    $scope.page['title'] = tr("", []);
+    $scope.page['h1'] = $scope.page['title'];
+    $scope.page['description'] = tr("", []);
+    setTitle($scope.page['title']);
+    setDescription($scope.page['description']);
+  });
+}]);
+
+app.controller('AppCtrl', ['$scope', '$mdSidenav', function($scope, $mdSidenav){
+  $scope.toggleSidenav = function(menuId) {
+    $mdSidenav(menuId).toggle();
+  };
+  $scope.sidebarList = [
+    { title: "Some title", description: "And the description for the some title.", done: true },
+    { title: "Another one", description: "Another description for another title.", done: false }
+  ];
+}]);
+
+  </script>
+</html>

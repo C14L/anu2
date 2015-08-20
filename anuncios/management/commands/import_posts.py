@@ -101,7 +101,7 @@ class Command(BaseCommand):
                 post.is_delete = False
                 try:
                     post.category = [x['slug'] for x in
-                                     settings.ANUNCIOS_POST_CATEGORIES
+                                     settings.ANUNCIOS.CATEGORIES
                                      if x['parent'] and x['old']==row[3]][0]
                 except IndexError:
                     print('has no category! SKIP')

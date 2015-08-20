@@ -11,13 +11,13 @@ from django.db import models
 from django.utils.timezone import now
 from image_with_thumbnail_field import ImageWithThumbsField
 
-expire_days = getattr(settings, 'ANUNCIOS_EXPIRE_DAYS', 30)
-pic_sizes = getattr(settings, 'ANUNCIOS_PIC_SIZES', (('s', 'cover', 75,  75),
+expire_days = getattr(settings.ANUNCIOS, 'EXPIRE_DAYS', 30)
+pic_sizes = getattr(settings.ANUNCIOS, 'PIC_SIZES', (('s', 'cover', 75,  75),
                                                      ('m', 'cover', 300, 300),
                                                      ('x', 'contain', 800, 800)
                                                     ))
 category_choices = [(x['slug'], x['title']) for x in getattr(
-        settings, 'ANUNCIOS_POST_CATEGORIES', []) if x['parent'] != '']
+        settings.ANUNCIOS, 'CATEGORIES', []) if x['parent'] != '']
 
 class Post(models.Model):
 
@@ -29,9 +29,9 @@ class Post(models.Model):
     lng = models.FloatField(null=True, default=None)
     title = models.CharField(max_length=200) # for <h1> and <title>
     text = models.TextField(max_length='') # Markdown
-    created = models.DateTimeField(default=now, null=True)
+    created = models.DateTimeField(db_index=True, default=now, null=True)
     updated = models.DateTimeField(default=now, null=True)
-    publish = models.DateTimeField(default=now, null=True) # auto-publish time
+    publish = models.DateTimeField(db_index=True, default=now, null=True) # auto-publish time
     expires = models.DateTimeField(default=None, null=True)
     created_ip = models.CharField(max_length=30, default='')
     updated_ip = models.CharField(max_length=30, default='')
@@ -51,7 +51,8 @@ class Post(models.Model):
 
     class Meta:
         ordering = ['-created']
-        index_together = ['lat', 'lng']
+        index_together = [['lat', 'lng'],
+                          ['category', 'is_public', 'created'], ]
 
     def __str__(self):
         return self.title
