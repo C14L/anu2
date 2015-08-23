@@ -16,6 +16,14 @@
 .category-list-view a { color: inherit; text-decoration: inherit; }
 .category-list-view a:hover { color: #0000FF; text-decoration: underline; }
 
+.home-view .category-list-view, 
+.home-view .category-list-view h2, 
+.home-view .category-list-view span { color: #909090; }
+.home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
+.home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
+.home-view .loading-geoloc md-progress-circular { }
+.home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
+
     </style>
     <script>
 
@@ -68,49 +76,64 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 -->
 
   <script type="text/ng-template" id="home.html">
-
-    <div>
-      <h2>{{tr('Encuentra clasificados en tu ciudad:')}}</h2>
-      <md-autocomplete 
-          md-selected-item-change="locationSelected(selectedItem)"
-          md-selected-item="selectedItem" 
-          md-search-text="searchText" 
-          md-items="item in getMatches(searchText)" 
-          md-item-text="item"
-          md-delay="300"
-          md-min-length="3"
-          md-input-minlength="10"
-          md-input-maxlength="100"
-          md-autofocus="1"
-          md-autoselect="1"
-          md-select-on-match="1"
-          placeholder="{{tr('Escribe unos letras del nombre de tu ciudad...')}}">
-        <md-item-template>
-          <span md-highlight-text="searchText">{{item}}</span>
-        </md-item-template>
-        <md-not-found>
-          {{tr("No se encontró ninguna ciudad con este nombre.")}}
-        </md-not-found>
-      </md-autocomplete>
-    </div>
-
-    <div class="home-view category-list-view">
-      <div ng-repeat="(slug, root) in categoryTree track by slug">
-        <h2><a ng-href="{{loc.url}}/{{root.slug}}">{{root.title}} in {{loc.city_name}}</a></h2>
-        <div ng-repeat="child in root.children track by child.slug">
-          <a ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}">{{child.title}}</a>
+    <div class="home-view">
+      
+      <div ng-show="isSearchingLocation">
+        <div class="loading-geoloc">
+          <div class="text" ng-bind="tr('Encontrando tu ciudad...')"></div>
+          <div layout="row" layout-sm="column" layout-align="space-around">
+            <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
+          </div>
         </div>
       </div>
+      
+      <div ng-show="isManualCityFinder">
+        <div class="manual-geoloc">
+          <h2 ng-bind="tr('Encuentra clasificados en tu ciudad:')"></h2>
+          <md-autocomplete 
+            md-selected-item-change="locationSelected(selectedItem)"
+            md-selected-item="selectedItem" 
+            md-search-text="searchText" 
+            md-items="item in getMatches(searchText)" 
+            md-item-text="item.crc"
+            md-delay="300"
+            md-min-length="3"
+            md-input-minlength="10"
+            md-input-maxlength="100"
+            md-autofocus="1"
+            md-autoselect="1"
+            md-select-on-match="1"
+            placeholder="{{tr('Escribe unos letras del nombre de tu ciudad...')}}">
+            <md-item-template>
+              <span md-highlight-text="searchText">{{item.crc}}</span>
+            </md-item-template>
+            <md-not-found>
+              <span>{{tr('No se encontró ninguna ciudad con este nombre.')}}</span>
+            </md-not-found>
+          </md-autocomplete>
+        </div>
+      </div>
+
+      <div class="category-list-view">
+        <div ng-repeat="(slug, root) in categoryTree track by slug">
+          <h2 ng-bind="root.title"></h2>
+          <div ng-repeat="child in root.children track by child.slug">
+            <span ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}" ng-bind="child.title"></span>
+          </div>
+        </div>
+      </div>
+    
     </div>
   </script>
 
   <script type="text/ng-template" id="location.html">
     <div class="location-view category-list-view">
-      <p>location view
+      <h1>{{tr('Clasificados para {0}', [geoloc.city_name])}}</h1>
+      <p>{{page.description}}</p>
       <div ng-repeat="(slug, root) in categoryTree track by slug">
-        <h2><a ng-href="{{loc.url}}/{{root.slug}}">{{root.title}} in {{loc.city_name}}</a></h2>
+        <h2><a ng-href="{{geoloc.url}}/{{root.slug}}" title="{{tr('Anuncions clasificados de {0} de {1}', [root.title, geoloc.city_name])}}">{{tr('{0} en {1}', [root.title, geoloc.city_name])}}</a></h2>
         <div ng-repeat="child in root.children track by child.slug">
-          <a ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}">{{child.title}}</a>
+          <a ng-href="{{geoloc.url}}/{{root.slug}}/{{child.slug}}" title="{{tr('Anuncions clasificados de {0} de {1}', [child.title, geoloc.city_name])}}">{{child.title}}</a>
         </div>
       </div>
     </div>
@@ -118,8 +141,8 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
   <script type="text/ng-template" id="category.html">
     <div class="category-view item-list-view">
-      <p>category view: {{category.title}}
-      <p>parent category: {{category.parent.title}}
+      <h1 ng-bind="category.title"></h1>
+      <p ng-bind="page.description"></p>
     </div>
   </script>
 
@@ -164,6 +187,7 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 }]);
 
 app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
+  $rootScope.categories = [];
   $rootScope.categoryTree = {};
   $rootScope.site = {
     'title': 'Anuncios1.com'
@@ -175,9 +199,8 @@ app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $wi
   };
 
   $rootScope.categoriesPromise = $http.get('/api/v1/categories/').then(function(res){
-    $rootScope.loc = res['data']['location'];
     $rootScope.categories = res['data']['categories'];
-
+    // Build a tree from the categories list.
     for (var i=0; i<$rootScope.categories.length; i++){
       var item = $rootScope.categories[i];
       if (!item['parent']){
@@ -195,103 +218,188 @@ app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $wi
         }
       }
     }
+  });
 
-    $rootScope.tr = function(str, arr){ return tr(str, arr); }
+  // Wrapper for the tr() translation function.
+  $rootScope.tr = function(str, arr){ return tr(str, arr); }
 
-    $rootScope.getCategory = function(slug){
-      /* Return category by slug, including parent etc data */
-      var li = $rootScope.categories.filter(function(el){ return el.slug == slug; });
-      if (li.length < 1) return null;
-      if (li.length > 0) {
-        if (li[0]['parent']) li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
-        return li[0];
+  // Return category by slug, including parent etc data.
+  $rootScope.getCategory = function(slug){
+    var li = $rootScope.categories.filter(function(el){ return el.slug == slug; });
+    if (li.length < 1) return null;
+    if (li.length > 0) {
+      if (li[0]['parent']) li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
+      return li[0];
+    }
+  }
+  //log($rootScope.categories);
+  //log($rootScope.categoryTree);
+}]);
+
+// Factories //////////////////////////////////////////////////////////////////
+
+app.factory('GeolocFinder', ['$q', '$http', '$window', function GeolocFinderFactory($q, $http, $window){
+  // Return the geolocation from the browser API, then query dtrcity for the
+  // name of the nearest city and resolve by returning the city's data object.
+  var deferred = $q.defer();
+
+  if ($window.navigator && $window.navigator.geolocation){
+    $window.navigator.geolocation.getCurrentPosition(function(loc, timestamp){
+      var url = 'dtrcity/api/v1/city-by-latlng.json';
+      var params = { 'latitude': loc.coords.latitude, 
+                     'longitude': loc.coords.longitude,
+                     'accuracy': loc.coords.accuracy };
+      $http.get(url, {params:params}).then(
+        function(response){
+          deferred.resolve(response.data);
+        }, function(response){
+          log('No city data received from server.');
+          deferred.reject();
+        }
+      );
+    },
+    function(err){
+      log('Browser geolocation API returned an error.');
+      deferred.reject();
+    },
+    {
+      maximumAge: 0, // age of the location data in cache
+      timeout: 10000, // request timeout
+      enableHighAccuracy: true, // may give more accurate results
+    });
+  } else {
+    log('Browser geolocation API not found.');
+    deferred.reject();
+  }
+
+  return deferred.promise;
+}]);
+
+app.factory('Categories', ['$q', '$http', function CategoriesFactory($q, $http){
+  /* TODO: Return the list of categories. First from $http then from buffer. */
+}]);
+
+app.factory('Geoloc', ['$q', '$http', function GeolocFactory($q, $http){
+  /* Return data on current geographic location, either from buffer or $http request */
+  var buffer = [];  // Buffer previous location items.
+  var maxbuf = 100; // Fifo-remove older items.
+
+  function getByUrl(item_url){
+    var deferred = $q.defer();
+    var found = false;
+    for (var i=0; i<buffer.length; i++){
+      // Try to find in buffer
+      if (buffer[i]['url'] == item_url){
+        deferred.resolve(buffer[i]);
+        found = true;
       }
     }
+    if (!found){
+      // Not in buffer, load from server.
+      var url = '/dtrcity/api/v1/' + item_url + '.json';
+      log(url);
+      $http.get(url).then(
+        function(response){ deferred.resolve(response.data); },
+        function(response){ deferred.reject(); }
+      );
+    };
+    return deferred.promise;
+  }
 
-    //log($rootScope.categories);
-    //log($rootScope.categoryTree);
-  });
+  return {
+    getByUrl: getByUrl,
+  };
 }]);
 
 // Controller /////////////////////////////////////////////////////////////////
 
-app.controller('HomeController', ['$scope', '$http', '$window', function($scope, $http, $window){
+app.controller('HomeController', ['$scope', '$http', '$window', 'GeolocFinder', function($scope, $http, $window, GeolocFinder){
+
   $scope.page['title'] = tr("Anuncios Clasificados", []);
   $scope.page['h1'] = $scope.page['title'];
   $scope.page['description'] = tr("Anuncios clasificados locales de tu ciudad, encuentra todas las mejores ofertas y artículos interesantes.", []);
   setTitle($scope.page['title']);
   setDescription($scope.page['description']);
 
+  // Return a list of matches for the autocomplete input city finder.
   $scope.getMatches = function(searchText){
-    /* Return a list of matches for the autocomplete input city finder. */
     if (searchText.length < 2) return [];
     var url = '/dtrcity/api/v1/autocomplete-crc.json';
-    var params = { 'params': { 'q': searchText }};
+    var params = { 'params': { 'q': searchText, 'fields':'crc url' }};
     return $http.get(url, params).then(
       function(response){
         return response.data; 
       }
     );
   };
+  // Once we have a geolocation, call this to redirect to geoloc's page.
   $scope.locationSelected = function(item){
     if (!item) return;
-    log('Location selected: "' + item.name + '".');
+    log('Location selected: "' + item.crc + '".');
     $window.location.href = item.url;
   }
-
   // Try to get the user's geolocation and redirect them to their own city's
   // content page automatically. See http://diveintohtml5.info/geolocation.html
   // The browser's "loc" object contains user's latitude and longitude in the
   // loc.coords.latitude and loc.coords.longitude properties. Look up  the
   // nearest city in Geonames database.
-  navigator.geolocation.getCurrentPosition(function(loc, timestamp){
-    var url = 'dtrcity/api/v1/city-by-latlng.json';
-    var params = { params: { 'latitude': loc.coords.latitude, 'longitude': loc.coords.longitude, 'accuracy': loc.coords.accuracy }};
-    $http.get(url, params).then(
-      function(response){
-        $scope.loc = response.data;
-      }, function(response){
-        $scope.isManualCityFinder = true;
-      }
-    );
-  }, function(err){
-    $scope.isManualCityFinder = true;
-  });
+  $scope.isManualCityFinder = false; // don't show manual input field.
+  $scope.isSearchingLocation = true; // do show loading indicator.
+  $scope.GeolocFinderPromise = GeolocFinder.then(
+    function(cityItem){
+      log('Geolocation received from API, our city is "' + cityItem.crc + '", now redirecting...');
+      $scope.isSearchingLocation = false;
+      $scope.locationSelected(cityItem);
+    },
+    function(){
+      log('No geolocation from API, switch to manual!')
+      $scope.isSearchingLocation = false;
+      $scope.isManualCityFinder = true;
+    }
+  );
 }]);
 
-app.controller('LocationController', ['$scope', '$routeParams', function($scope, $routeParams){
-  $scope.categoriesPromise.then(function(){
-    $scope.category = $scope.getCategory($routeParams['category']);
+app.controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
+  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
 
+  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+    $scope.category = $scope.getCategory($routeParams['category']);
     $scope.page['home_url'] = '/';
-    $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.loc['crc']]);
+    $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.geoloc['crc']]);
     $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.loc['crc'], $scope.loc['city_name'], $scope.loc['country_name']]);
+    $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.geoloc['crc'], $scope.geoloc['name'], $scope.geoloc['country_name']]);
     setTitle($scope.page['title']);
     setDescription($scope.page['description']);
   });
 }]);
 
-app.controller('CategoryController', ['$scope', '$routeParams', function($scope, $routeParams){
-  $scope.categoriesPromise.then(function(){
+app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
+
+  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
+  
+  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
     $scope.category = $scope.getCategory($routeParams['category']);
 
-    $scope.page['home_url'] = '/' + $scope.loc['url'];
-    $scope.page['title'] = tr("{2} > {0} > {1}", [$scope.category['parent']['title'], $scope.category['title'], $scope.loc['city_name']]);
+    $scope.page['home_url'] = '/' + $scope.geoloc['url'];
+    $scope.page['title'] = tr("{2} > {0} > {1}", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name']]);
     $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr("", []);
+    $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
     setTitle($scope.page['title']);
     setDescription($scope.page['description']);
   });
 }]);
 
-app.controller('CategoryGroupController', ['$scope', '$routeParams', function($scope, $routeParams){
-  $scope.categoriesPromise.then(function(){
-    
-    $scope.page['home_url'] = '/' + $scope.loc['url'];
+app.controller('CategoryGroupController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
+
+  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
+  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+    $scope.page['home_url'] = '/' + $scope.geoloc['url'];
     $scope.page['title'] = tr("", []);
     $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr("", []);
+    $scope.page['description'] = "";
     setTitle($scope.page['title']);
     setDescription($scope.page['description']);
   });
