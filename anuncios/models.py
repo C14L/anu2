@@ -16,15 +16,16 @@ pic_sizes = getattr(settings.ANUNCIOS, 'PIC_SIZES', (('s', 'cover', 75,  75),
                                                      ('m', 'cover', 300, 300),
                                                      ('x', 'contain', 800, 800)
                                                     ))
-category_choices = [(x['slug'], x['title']) for x in getattr(
-        settings.ANUNCIOS, 'CATEGORIES', []) if x['parent'] != '']
 
 class Post(models.Model):
+
+    CATEGORY_CHOICES = [(x['slug'], x['title']) for x in getattr(
+        settings.ANUNCIOS, 'CATEGORIES', []) if x['parent'] != '']
 
     user = models.ForeignKey(User, db_index=True)
     category = models.CharField( # These have to have a parent main category!
         max_length=30, blank=True, default='', db_index=True,
-        choices=category_choices)
+        choices=CATEGORY_CHOICES)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     title = models.CharField(max_length=200) # for <h1> and <title>

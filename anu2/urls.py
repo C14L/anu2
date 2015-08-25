@@ -36,11 +36,11 @@ urlpatterns = [
         views.UserItemAPIView.as_view(), name="user-list"),
     url(r'^api/v1/posts/$', 
         views.PostListAPIView.as_view(), name="post-list"),
-    url(r'^api/v1/posts/(?P<pk>[0-9]+)$', 
+    url(r'^api/v1/posts/(?P<pk>[0-9]+)/$', 
         views.PostItemAPIView.as_view(), name="post-item"),
     url(r'^api/v1/categories/$', 
         views.CategoriesListAPIView.as_view(), name="categories-list"),
-    url(r'^api/v1/categories/(?P<pk>[a-z0-9-]+)$', 
+    url(r'^api/v1/categories/(?P<pk>[a-z0-9-]+)/$', 
         views.CategoriesItemAPIView.as_view(), name="categories-item"),
     
     url(r'^.*$', views.AppHTMLView.as_view(), name="app"),

@@ -11,10 +11,19 @@
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.9.4/angular-material.min.css">
     <style>
 
+body { overflow: hidden; }
+
+/* needs 28px top margin to be aligned with header bar. */
+.md-fab-top-right { top: 28px !important; } 
 .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
 
-.category-list-view a { color: inherit; text-decoration: inherit; }
+.category-list-view a { color: inherit; text-decoration: none; }
 .category-list-view a:hover { color: #0000FF; text-decoration: underline; }
+
+.item-list-view .post-item a { text-decoration: none; }
+.item-list-view .post-item.expired { color: #C0C0C0; }
+.item-list-view .post-item.expired a { color: #C0C0C0; }
+.item-list-view .post-item a:hover { text-decoration: underline; }
 
 .home-view .category-list-view, 
 .home-view .category-list-view h2, 
@@ -23,6 +32,11 @@
 .home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
 .home-view .loading-geoloc md-progress-circular { }
 .home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
+
+.postitem-view {  }
+.postitem-view a { text-decoration: none; }
+.postitem-view.expired, 
+.postitem-view.expired a { color: #C0C0C0; }
 
     </style>
     <script>
@@ -37,21 +51,26 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
     </script>
   </head>
-  <body layout="column" ng-controller="AppCtrl">
+  <body layout="column" ng-controller="AppController">
+
     <md-toolbar layout="row">
       <div class="md-toolbar-tools">
         <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
-          <md-icon md-svg-src="/static/icons/menu.svg" aria-label="Menu"></md-icon>
+          <md-icon md-svg-src="static/icons/menu.svg" aria-label="Menu"></md-icon>
         </md-button>
         <h1><a href="{{page.home_url}}">{{page.h1}}</a></h1>
       </div>
     </md-toolbar>
 
+    <md-button ng-click="showAddPost($event)" class="md-fab md-fab-top-right" aria-label="Eat cake">
+      <md-icon md-svg-src="static/icons/android-add.svg"></md-icon>
+    </md-button>
+
     <div layout="row" flex>
       <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
         <div hide-gt-md class="md-toolbar-tools">
           <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
-            <md-icon md-svg-src="/static/icons/close.svg" aria-label="Close"></md-icon>
+            <md-icon md-svg-src="static/icons/close.svg" aria-label="Close"></md-icon>
           </md-button>
           <h1>{{site.title}}</h1>
         </div>
@@ -143,6 +162,30 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     <div class="category-view item-list-view">
       <h1 ng-bind="category.title"></h1>
       <p ng-bind="page.description"></p>
+      <div ng-if="!posts" layout="row" layout-sm="column" layout-align="space-around">
+        <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
+      </div>
+      <div ng-if="posts" class="post-item" ng-class="{'expired': post.expired}" ng-repeat="post in posts.results track by post.id">
+        <h3 class="post-title"><a href="#" ng-href="{{post.url}}">{{post.title}}</a></h3>
+        <p>
+          <span>{{tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name])}}</span> - 
+          <span>{{tr('publicado:')}} {{post.publish}}</span> - 
+          <span>{{tr('valido hasta:')}} {{post.expires}}</span> - 
+          <a ng-if="!post.expired" ng-href="{{post.url}}">{{tr('ver clasificado')}}</a>
+          <a ng-if="post.expired" ng-href="{{post.url}}">{{tr('clasificado expirado')}}</a>
+        </p>
+      </div>
+      <div class="prevnext">
+        <a ng-if="posts.previous" ng-href="{{posts.previous}}" ng-bind="tr('previous')"></a>
+        <a ng-if="posts.next" ng-href="{{posts.next}}" ng-bind="tr('next')"></a>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="postitem.html">
+    <div class="postitem-view" ng-class="{'expired': post.expired}">
+      <h1 ng-bind="post.title"></h1>
+      <div ng-bind-html="post.text_html"></div>
     </div>
   </script>
 
@@ -150,6 +193,64 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     <div class="categorygroup-view category-list-view">
       categorygroup view
     </div>
+  </script>
+
+  <script type="text/ng-template" id="addpost.html">
+    <md-dialog aria-label="Create Post" flex="80" class="addpost-view" style="max-width:600px">
+      <form name="addpostForm" style="overflow:hidden">
+        <md-dialog-content>
+          <div>Para publicar tu anuncio, llena todos los campos y al final oprime Publicar. Te enviaremos un correo electronico para confirmar la publicacion del anuncio.</div>
+          <div>
+            <p>
+              <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Ciudad:')"></span>
+              <span style="display:block" ng-bind="geoloc.crc"></span>
+            </p>
+            <p>
+              <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Categoría:')"></span>
+              <span style="display:block" ng-bind="category.title"></span>
+            </p>
+            <md-input-container>
+              <label>Email:</label>
+              <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
+              <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
+                <div ng-message="required">This is required!</div>
+                <div ng-message="md-maxlength">That is too long!</div>
+                <div ng-message="minlength">That is too short!</div>
+              </div>
+            </md-input-container>
+            <md-input-container>
+              <label>Título:</label>
+              <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
+              <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
+                <div ng-message="required">This is required!</div>
+                <div ng-message="md-maxlength">That is too long!</div>
+                <div ng-message="minlength">That is too short!</div>
+              </div>
+            </md-input-container>
+            <md-input-container>
+              <label>Texto:</label>
+              <textarea name="addpostText" ng-model="addpost.text" md-maxlength="10000"></textarea></p>
+              <div ng-messages="addpostForm.addpostText.$error" ng-show="addpostForm.addpostText.$dirty">
+                <div ng-message="required">This is required!</div>
+                <div ng-message="md-maxlength">That is too long!</div>
+                <div ng-message="minlength">That is too short!</div>
+              </div>
+            </md-input-container>
+            <md-input-container>
+              <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
+                <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+          <span flex></span>
+          <md-button ng-click="addpostSubmit()" style="margin-right:20px;">
+            Publicar
+          </md-button>
+        </div>
+      </form>
+    </md-dialog>
   </script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
@@ -183,10 +284,15 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
         controller: 'CategoryController',
         templateUrl: 'category.html'
     })
+    .when( '/:country/:region/:city/:cgroup/:category/:postid', {
+        controller: 'PostItemController',
+        templateUrl: 'postitem.html'
+    })
     .otherwise({ redirectTo: '/' });
 }]);
 
 app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
+
   $rootScope.categories = [];
   $rootScope.categoryTree = {};
   $rootScope.site = {
@@ -228,12 +334,12 @@ app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $wi
     var li = $rootScope.categories.filter(function(el){ return el.slug == slug; });
     if (li.length < 1) return null;
     if (li.length > 0) {
-      if (li[0]['parent']) li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
+      if (typeof(li[0]['parent']) === 'string'){
+        li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
+      }
       return li[0];
     }
-  }
-  //log($rootScope.categories);
-  //log($rootScope.categoryTree);
+  };
 }]);
 
 // Factories //////////////////////////////////////////////////////////////////
@@ -279,7 +385,74 @@ app.factory('Categories', ['$q', '$http', function CategoriesFactory($q, $http){
   /* TODO: Return the list of categories. First from $http then from buffer. */
 }]);
 
-app.factory('Geoloc', ['$q', '$http', function GeolocFactory($q, $http){
+app.factory('Posts', ['$q', '$http', '$sce', function PostsFactory($q, $http, $sce){
+  var list_cache_for = null; // URL path for cached list.
+  var list_cache = []; // List of Post data items.
+
+  function completeFields(post){
+        post['text_html'] = $sce.trustAsHtml(textfilter(post['text']));
+        // Set true or false if the ad is already expired.
+        post['expired'] = (new Date(post['expires'])) < (new Date());
+        return post;
+  }
+  function getItem(postid){
+    // Load a single post by Id, either from cache or from server.
+    var deferred = $q.defer();
+    var url = 'api/v1/posts/' + postid + '/';
+    $http.get(url).then(
+      function(response){ deferred.resolve(completeFields(response.data)); },
+      function(response){ deferred.reject(); }
+    );
+    return deferred.promise;
+  }
+  function getList(city_url, cgroup, category, page){
+    // Get a list of items by URL.
+    // 
+    // city_url - URL fragment "country/region/city".
+    // cgroup - Category group slug.
+    // category - Category slug.
+    //
+    var deferred = $q.defer();
+    // Check for cache.
+    basepath = '/' + city_url + '/' + cgroup  + '/' + category;
+    list_for = basepath + '?page=' + page;
+    if (list_cache_for && list_cache_for===list_for){
+      deferred.resolve(list_cache);
+    }
+    // Not cached, get from server.
+    var url = 'api/v1/posts/';
+    var params = { city_url:city_url, cgroup:cgroup, category:category, dist:50, page:page };
+    $http.get(url, {params:params}).then(
+      function(response){
+        list_cache_for = list_for;
+        list_cache = response.data;
+        // Fill in addition fields.
+        for (var i=0; i<list_cache.results.length; i++)
+          list_cache.results[i] = completeFields(list_cache.results[i]);
+        // Extract the actual "previous" and "next" page numbers.
+        var result = (/\Wpage=(\d+)/g).exec(list_cache['previous']);
+        list_cache['previous_page'] = result ? result[1] : null;
+        list_cache['previous'] = result ? basepath + '?page=' + result[1] : null;
+        if (page == 2) list_cache['previous'] = basepath // special case, only the path with no page number.
+        var result = (/\Wpage=(\d+)/g).exec(list_cache['next']);
+        list_cache['next_page'] = result ? result[1] : null;
+        list_cache['next'] = result ? basepath + '?page=' + result[1] : null;
+
+        // Resolve.
+        deferred.resolve(list_cache);
+      },
+      function(response){ deferred.reject(); }
+    );
+    return deferred.promise;
+  }
+  
+  return {
+    getItem: getItem,
+    getList: getList,
+  };
+}]);
+
+app.factory('Geoloc', ['$q', '$http', '$routeParams', function GeolocFactory($q, $http, $routeParams){
   /* Return data on current geographic location, either from buffer or $http request */
   var buffer = [];  // Buffer previous location items.
   var maxbuf = 100; // Fifo-remove older items.
@@ -287,24 +460,51 @@ app.factory('Geoloc', ['$q', '$http', function GeolocFactory($q, $http){
   function getByUrl(item_url){
     var deferred = $q.defer();
     var found = false;
-    for (var i=0; i<buffer.length; i++){
-      // Try to find in buffer
-      if (buffer[i]['url'] == item_url){
-        deferred.resolve(buffer[i]);
-        found = true;
+    if (typeof(item_url) === 'undefined') {
+      if ($routeParams.country && $routeParams.region && $routeParams.city) {
+        log($routeParams.country); log($routeParams.region); log($routeParams.city);
+        var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
       }
     }
-    if (!found){
-      // Not in buffer, load from server.
-      var url = '/dtrcity/api/v1/' + item_url + '.json';
-      log(url);
-      $http.get(url).then(
-        function(response){ deferred.resolve(response.data); },
-        function(response){ deferred.reject(); }
-      );
-    };
+    if (typeof(item_url) === 'undefined') {
+      deferred.reject();
+    } else {
+      for (var i=0; i<buffer.length; i++){
+        // Try to find in buffer
+        if (buffer[i]['url'] == item_url){
+          deferred.resolve(buffer[i]);
+          found = true;
+        }
+      }
+      if (!found){
+        // Not in buffer, load from server.
+        var url = '/dtrcity/api/v1/' + item_url + '.json';
+        $http.get(url).then(
+          function(response){ deferred.resolve(response.data); },
+          function(response){ deferred.reject(); }
+        );
+      }
+    }
     return deferred.promise;
   }
+
+  /* Load geolocation data if there is a geolocation in the URL route.
+  log('Should geoloc data be queried...?');
+  log($routeParams.country);
+  log($routeParams.region);
+  log($routeParams.city);
+  if ($routeParams.country && $routeParams.region && $routeParams.city) {
+    log('Yes, please!');
+    $rootScope.geolocUrl = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+    log($rootScope.geolocUrl);
+    $rootScope.geolocPromise = Geoloc.getByUrl($rootScope.geolocUrl).then(function(data){
+      log('Geoloc data recieved:'); log(data);
+      $rootScope.geoloc = data;
+    });
+  } else {
+    log('Not really...');
+  } */
+
 
   return {
     getByUrl: getByUrl,
@@ -334,9 +534,7 @@ app.controller('HomeController', ['$scope', '$http', '$window', 'GeolocFinder', 
   };
   // Once we have a geolocation, call this to redirect to geoloc's page.
   $scope.locationSelected = function(item){
-    if (!item) return;
-    log('Location selected: "' + item.crc + '".');
-    $window.location.href = item.url;
+    if (item) $window.location.href = item.url;
   }
   // Try to get the user's geolocation and redirect them to their own city's
   // content page automatically. See http://diveintohtml5.info/geolocation.html
@@ -360,9 +558,8 @@ app.controller('HomeController', ['$scope', '$http', '$window', 'GeolocFinder', 
 }]);
 
 app.controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
-  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
 
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
   $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
     $scope.category = $scope.getCategory($routeParams['category']);
     $scope.page['home_url'] = '/';
@@ -372,18 +569,29 @@ app.controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', 
     setTitle($scope.page['title']);
     setDescription($scope.page['description']);
   });
+
 }]);
 
-app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
+app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $routeParams, Geoloc, Posts){
+
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
 
   var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
-  
-  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+  $scope.postsPromise = Posts.getList(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page||1).then(function(data){ $scope.posts = data; });
+
+  // When city data and category data promises resolve, show the page with all
+  // ads for this particular city.
+  $q.all([$scope.postsPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
     $scope.category = $scope.getCategory($routeParams['category']);
 
+    // Prepare URL properties for each post.
+    for (var i=0; i<$scope.posts.results.length; i++){
+      $scope.posts.results[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts.results[i]['id'];
+    }
+
+    // Prepare page values.
     $scope.page['home_url'] = '/' + $scope.geoloc['url'];
-    $scope.page['title'] = tr("{2} > {0} > {1}", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name']]);
+    $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.count]);
     $scope.page['h1'] = $scope.page['title'];
     $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
     setTitle($scope.page['title']);
@@ -393,8 +601,7 @@ app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', 
 
 app.controller('CategoryGroupController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
 
-  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-  $scope.geolocPromise = Geoloc.getByUrl(item_url).then(function(data){ $scope.geoloc = data });
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
   $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
     $scope.page['home_url'] = '/' + $scope.geoloc['url'];
     $scope.page['title'] = tr("", []);
@@ -405,14 +612,94 @@ app.controller('CategoryGroupController', ['$scope', '$q', '$routeParams', 'Geol
   });
 }]);
 
-app.controller('AppCtrl', ['$scope', '$mdSidenav', function($scope, $mdSidenav){
+app.controller('PostItemController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $routeParams, Geoloc, Posts){
+  //
+  // Display a page for a single Post item.
+  //
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
+  $scope.postPromise = Posts.getItem($routeParams.postid).then(function(data){ $scope.post = data; });
+
+  $q.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+    $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
+    $scope.page['title'] = $scope.post['title'] + ' (' + $scope.geoloc['crc'] + ')';
+    $scope.page['h1'] = $scope.post['title'];
+    $scope.page['description'] = "";
+    setTitle($scope.page['title']);
+    setDescription($scope.page['description']);
+  });
+}]);
+
+app.controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc){
+
   $scope.toggleSidenav = function(menuId) {
     $mdSidenav(menuId).toggle();
   };
+
   $scope.sidebarList = [
     { title: "Some title", description: "And the description for the some title.", done: true },
     { title: "Another one", description: "Another description for another title.", done: false }
   ];
+
+  $scope.showAddPost = function (ev) {
+    log('--- AppController.showAddPost() ---');
+    // Figure out if we are already in a specific category here.
+    if ($routeParams.country && $routeParams.region && $routeParams.city && $routeParams.cgroup && $routeParams.category) {
+
+      $scope.categoriesPromise.then(function(){$scope.category = $scope.getCategory($routeParams['category'])});
+
+      // https://material.angularjs.org/latest/#/api/material.components.dialog/service/$mdDialog
+      $mdDialog.show({
+        scope: $scope, // use parent scope in template
+        controller: function ($scope, $mdDialog, $routeParams, Geoloc) {
+
+          $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
+          $scope.expiresDeltaOptions = [["7", "1 semana"], ["30", "1 mes"], ["91", "3 meses"], ["365", "1 año"], ["1095", "3 años"]];
+
+          $scope.addpostSubmit = function (ev) {
+            $mdDialog.hide().then(function(){
+              alert('addpostSubmit() clicked!');
+            });
+          };
+          $scope.hide = function () {
+            $mdDialog.hide();
+          };
+          $scope.cancel = function () {
+            $mdDialog.cancel();
+          };
+          $scope.answer = function (answer) {
+            alert(answer);
+            $mdDialog.hide(answer);
+          };
+        },
+        templateUrl: 'addpost.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        disableParentScroll: true,
+        clickOutsideToClose: false,
+        escapeToClose: true,
+        onComplete: function () {
+          // focus email input
+        }
+      })
+      .then(
+        function(answer) {
+          $scope.status = 'You said the information was "' + answer + '".';
+        }, function() {
+          $scope.status = 'You cancelled the dialog.';
+        });
+    } else {
+      $mdDialog.show(
+        $mdDialog.alert()
+          .parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true)
+          .title(tr('Selecciona la categoria'))
+          .content(tr('Para agregar un anuncio, primero selecciona la categoria en la cual lo quieres publicar.'))
+          .ariaLabel(tr('Selecciona la categoria alert dialog'))
+          .ok(tr('Cerrar'))
+          .targetEvent(ev));
+    }
+  };
+
 }]);
 
   </script>
