@@ -13,8 +13,7 @@
 
 body { overflow: hidden; }
 
-/* needs 28px top margin to be aligned with header bar. */
-.md-fab-top-right { top: 28px !important; } 
+.md-fab-top-right { top: 28px !important; } /* needs 28px top margin to be aligned with header bar. */
 .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
 
 .category-list-view a { color: inherit; text-decoration: none; }
@@ -37,6 +36,21 @@ body { overflow: hidden; }
 .postitem-view a { text-decoration: none; }
 .postitem-view.expired, 
 .postitem-view.expired a { color: #C0C0C0; }
+
+.add-post-view .todolist { list-style: none; margin: 0; padding: 0; background-color: #E3E3E3; }
+.add-post-view .todolist li { display: inline-block; margin: 0; padding: 8px; color: #909090; }
+.add-post-view .todolist li.active { color: #000000; }
+.add-post-view .formfields { max-width: 500px; }
+.add-post-view .formfields md-input-container { clear: right; }
+
+.add-post-view .piclist { display: block; margin: 16px 0; }
+.add-post-view .piclist .pic { display: inline-block; width: 150px; height: 150px; background: #909090 url(static/icons/images.svg) center center no-repeat; background-size: cover; border: 4px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); position: relative; margin: 4px; }
+.add-post-view .piclist .pic:before { content: ' '; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,0.7); }
+.add-post-view .piclist .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
+.add-post-view .piclist .pic img { position: absolute; top: 0; left: 0; background: #F3F3F3; width: inherit; height: inherit; margin: 0; padding: 0; outline: 0; border: 0; }
+.add-post-view .piclist .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
+.add-post-view .piclist .pic .add-btn,
+.add-post-view .piclist .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
 
     </style>
     <script>
@@ -62,9 +76,9 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
       </div>
     </md-toolbar>
 
-    <md-button ng-click="showAddPost($event)" class="md-fab md-fab-top-right" aria-label="Eat cake">
-      <md-icon md-svg-src="static/icons/android-add.svg"></md-icon>
-    </md-button>
+    <md-button ng-if="addFabStatus==1" ng-click="addFabInfoDialog($event)" class="md-fab md-fab-top-right" aria-label="{{tr('agregar')}}"><md-icon md-svg-src="static/icons/android-add.svg"></md-icon></md-button>
+
+    <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{addFabStatus}}/add" class="md-fab md-fab-top-right" aria-label="{{tr('agregar')}}"><md-icon style="margin-top:14px;margin-left:-1px;" md-svg-src="static/icons/android-add.svg"></md-icon></md-button>
 
     <div layout="row" flex>
       <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
@@ -195,62 +209,70 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     </div>
   </script>
 
-  <script type="text/ng-template" id="addpost.html">
-    <md-dialog aria-label="Create Post" flex="80" class="addpost-view" style="max-width:600px">
-      <form name="addpostForm" style="overflow:hidden">
-        <md-dialog-content>
-          <div>Para publicar tu anuncio, llena todos los campos y al final oprime Publicar. Te enviaremos un correo electronico para confirmar la publicacion del anuncio.</div>
-          <div>
-            <p>
-              <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Ciudad:')"></span>
-              <span style="display:block" ng-bind="geoloc.crc"></span>
-            </p>
-            <p>
-              <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Categoría:')"></span>
-              <span style="display:block" ng-bind="category.title"></span>
-            </p>
-            <md-input-container>
-              <label>Email:</label>
-              <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
-              <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
-                <div ng-message="required">This is required!</div>
-                <div ng-message="md-maxlength">That is too long!</div>
-                <div ng-message="minlength">That is too short!</div>
-              </div>
-            </md-input-container>
-            <md-input-container>
-              <label>Título:</label>
-              <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
-              <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
-                <div ng-message="required">This is required!</div>
-                <div ng-message="md-maxlength">That is too long!</div>
-                <div ng-message="minlength">That is too short!</div>
-              </div>
-            </md-input-container>
-            <md-input-container>
-              <label>Texto:</label>
-              <textarea name="addpostText" ng-model="addpost.text" md-maxlength="10000"></textarea></p>
-              <div ng-messages="addpostForm.addpostText.$error" ng-show="addpostForm.addpostText.$dirty">
-                <div ng-message="required">This is required!</div>
-                <div ng-message="md-maxlength">That is too long!</div>
-                <div ng-message="minlength">That is too short!</div>
-              </div>
-            </md-input-container>
-            <md-input-container>
-              <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
-                <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
-              </md-select>
-            </md-input-container>
+  <script type="text/ng-template" id="addpostitem.html">
+      <form name="addpostForm" class="add-post-view">
+        <!-- <ol class="todolist">
+          <li class="active">{{tr('Llenar')}}</li>
+          <li>{{tr('Confirmar')}}</li>
+          <li>{{tr('¡Ya está!')}}</li>
+        </ol> -->
+        <div class="formfields">
+          <p>
+            <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Ciudad:')"></span>
+            <span style="display:block" ng-bind="geoloc.crc"></span>
+          </p>
+          <p>
+            <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Categoría:')"></span>
+            <span style="display:block" ng-bind="category.title"></span>
+          </p>
+          <div class="piclist">
+            <div class="pic" ng-repeat="pic in addpost.pics track by $index">
+              <input id="inputImage{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
+              <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait"><md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular></div>
+              <img ng-if="addpost.pics[$index].resized" ng-src="{{addpost.pics[$index].resized.dataURL}}">
+              <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove"><md-icon md-svg-src="static/icons/trash-a.svg" ng-click="addpost.pics[$index].removeImage()"></md-icon></md-button>
+            </div>
           </div>
-        </md-dialog-content>
-        <div class="md-actions" layout="row">
-          <span flex></span>
-          <md-button ng-click="addpostSubmit()" style="margin-right:20px;">
-            Publicar
-          </md-button>
+          <md-input-container>
+            <label>Email:</label>
+            <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
+            <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
+              <div ng-message="required">This is required!</div>
+              <div ng-message="md-maxlength">That is too long!</div>
+              <div ng-message="minlength">That is too short!</div>
+            </div>
+          </md-input-container>
+          <md-input-container>
+            <label>Título:</label>
+            <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
+            <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
+              <div ng-message="required">This is required!</div>
+              <div ng-message="md-maxlength">That is too long!</div>
+              <div ng-message="minlength">That is too short!</div>
+            </div>
+          </md-input-container>
+          <md-input-container>
+            <label>Texto:</label>
+            <textarea name="addpostText" ng-model="addpost.text" md-maxlength="10000"></textarea></p>
+            <div ng-messages="addpostForm.addpostText.$error" ng-show="addpostForm.addpostText.$dirty">
+              <div ng-message="required">This is required!</div>
+              <div ng-message="md-maxlength">That is too long!</div>
+              <div ng-message="minlength">That is too short!</div>
+            </div>
+          </md-input-container>
+          <md-input-container>
+            <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
+              <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
+            </md-select>
+          </md-input-container>
+          <div class="md-actions" layout="row">
+            <span flex></span>
+            <md-button ng-click="addpostSubmit()" class="md-raised md-primary">
+              Publicar
+            </md-button>
+          </div>
         </div>
       </form>
-    </md-dialog>
   </script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
@@ -258,10 +280,11 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-aria.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.js"></script>
+  <script src="static/libs/angularjs-imageupload-directive/public/javascripts/imageupload.js"></script>
   <script src="static/src/utils.js"></script>
   <script>
 
-var app = angular.module('AnunciosApp', ['ngRoute', 'ngMaterial']);
+var app = angular.module('AnunciosApp', ['ngRoute', 'ngMaterial', 'imageupload']);
 
 // Setup //////////////////////////////////////////////////////////////////////
 
@@ -284,6 +307,10 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
         controller: 'CategoryController',
         templateUrl: 'category.html'
     })
+    .when( '/:country/:region/:city/:cgroup/:category/add', {
+        controller: 'AddPostItemController',
+        templateUrl: 'addpostitem.html'
+    })
     .when( '/:country/:region/:city/:cgroup/:category/:postid', {
         controller: 'PostItemController',
         templateUrl: 'postitem.html'
@@ -293,41 +320,63 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 
 app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
 
+  $rootScope.addFabStatus = 1; // 0=hide; 1=show but disallow add; [String]=show and allow add. URL of href.
+  $rootScope.path = $location.path();
   $rootScope.categories = [];
   $rootScope.categoryTree = {};
+
   $rootScope.site = {
     'title': 'Anuncios1.com'
   };
   $rootScope.page = {
     'h1': 'Anuncios Clasificados', 
     'title': 'Anuncios Clasificados - Anuncios1.com',
-    'home_url': '/'
+    'home_url': '/',
   };
 
-  $rootScope.categoriesPromise = $http.get('/api/v1/categories/').then(function(res){
-    $rootScope.categories = res['data']['categories'];
-    // Build a tree from the categories list.
-    for (var i=0; i<$rootScope.categories.length; i++){
-      var item = $rootScope.categories[i];
-      if (!item['parent']){
-        $rootScope.categoryTree[item['slug']] = item;
-        $rootScope.categoryTree[item['slug']]['children'] = [];
+  $rootScope.categoriesPromise = $http.get('/api/v1/categories/').then(
+    function(res){
+      $rootScope.categories = res['data']['categories'];
+      
+      // Build a tree from the categories list.
+      for (var i=0; i<$rootScope.categories.length; i++){
+        var item = $rootScope.categories[i];
+        if (!item['parent']){
+          $rootScope.categoryTree[item['slug']] = item;
+          $rootScope.categoryTree[item['slug']]['children'] = [];
+        }
       }
-    }
-    for (var i=0; i<$rootScope.categories.length; i++){
-      var item = $rootScope.categories[i];
-      if (item['parent']){
-        if ($rootScope.categoryTree[item['parent']]){
-          $rootScope.categoryTree[item['parent']]['children'].push(item) 
-        } else {
-          log('Can not add item "'+item['slug']+'", because parent "'+item['parent']+'" does not exist!');
+      
+      for (var i=0; i<$rootScope.categories.length; i++){
+        var item = $rootScope.categories[i];
+        if (item['parent']){
+          if ($rootScope.categoryTree[item['parent']]){
+            $rootScope.categoryTree[item['parent']]['children'].push(item) 
+          } else {
+            log('Can not add item "'+item['slug']+'", because parent "'+item['parent']+'" does not exist!');
+          }
         }
       }
     }
+  );
+
+  // Allow the FAB "add" button to show the "add post" page.
+  $rootScope.setAddFabStatus = function(val) {
+    $rootScope.addFabStatus = val;
+  }
+
+  // Do stuff each time the route successfully changes.
+  $rootScope.$on('$routeChangeSuccess', function(event) {
+      // Reset FAB "add" button to default "disalow add" (1) state.
+      $rootScope.addFabStatus = 1;
+      // Push URL changes to Google Analytics
+      //$window.ga('send', 'pageview', { page: $location.path() });
   });
 
   // Wrapper for the tr() translation function.
-  $rootScope.tr = function(str, arr){ return tr(str, arr); }
+  $rootScope.tr = function (str, arr) {
+    return tr(str, arr);
+  }
 
   // Return category by slug, including parent etc data.
   $rootScope.getCategory = function(slug){
@@ -487,25 +536,6 @@ app.factory('Geoloc', ['$q', '$http', '$routeParams', function GeolocFactory($q,
     }
     return deferred.promise;
   }
-
-  /* Load geolocation data if there is a geolocation in the URL route.
-  log('Should geoloc data be queried...?');
-  log($routeParams.country);
-  log($routeParams.region);
-  log($routeParams.city);
-  if ($routeParams.country && $routeParams.region && $routeParams.city) {
-    log('Yes, please!');
-    $rootScope.geolocUrl = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-    log($rootScope.geolocUrl);
-    $rootScope.geolocPromise = Geoloc.getByUrl($rootScope.geolocUrl).then(function(data){
-      log('Geoloc data recieved:'); log(data);
-      $rootScope.geoloc = data;
-    });
-  } else {
-    log('Not really...');
-  } */
-
-
   return {
     getByUrl: getByUrl,
   };
@@ -574,16 +604,16 @@ app.controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', 
 
 app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $routeParams, Geoloc, Posts){
 
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-
   var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+  var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
+  $scope.setAddFabStatus(fab_url); 
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
   $scope.postsPromise = Posts.getList(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page||1).then(function(data){ $scope.posts = data; });
 
   // When city data and category data promises resolve, show the page with all
   // ads for this particular city.
   $q.all([$scope.postsPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
     $scope.category = $scope.getCategory($routeParams['category']);
-
     // Prepare URL properties for each post.
     for (var i=0; i<$scope.posts.results.length; i++){
       $scope.posts.results[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts.results[i]['id'];
@@ -616,90 +646,90 @@ app.controller('PostItemController', ['$scope', '$q', '$routeParams', 'Geoloc', 
   //
   // Display a page for a single Post item.
   //
+  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
+  var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
+  $scope.setAddFabStatus(fab_url);
   $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
   $scope.postPromise = Posts.getItem($routeParams.postid).then(function(data){ $scope.post = data; });
 
   $q.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+    $scope.category = $scope.getCategory($routeParams['category']);
     $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
+
     $scope.page['title'] = $scope.post['title'] + ' (' + $scope.geoloc['crc'] + ')';
     $scope.page['h1'] = $scope.post['title'];
     $scope.page['description'] = "";
+
     setTitle($scope.page['title']);
     setDescription($scope.page['description']);
   });
 }]);
 
-app.controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc){
+app.controller('AddPostItemController', ['$scope', '$q', '$http', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $http, $routeParams, Geoloc, Posts){
+  //
+  // Display a page for a single Post item.
+  //
+  $scope.setAddFabStatus(0); // 0=hide fab
+  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
+  $scope.postPromise = Posts.getItem($routeParams.postid).then(function(data){ $scope.post = data; });
 
-  $scope.toggleSidenav = function(menuId) {
+  $q.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
+
+    $scope.category = $scope.getCategory($routeParams['category']);
+    $scope.expiresDeltaOptions = [["7", "1 semana"], ["30", "1 mes"], ["91", "3 meses"], ["365", "1 año"], ["1095", "3 años"]];
+    $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
+    $scope.page['title'] = tr('Agregar nuevo anuncio');
+    $scope.page['h1'] = $scope.page['title'];
+    $scope.page['description'] = tr('Agregar nuevo anuncio a la categoria {0} en la ciudad de {1}, {2}.', [$scope.category['title'], $scope.geoloc['city_name'], $scope.geoloc['country_name'] ]);
+    setTitle($scope.page['title']);
+    setDescription($scope.page['description']);
+    $scope.addpost = {
+      'lat': $scope.geoloc.lat, 
+      'lng': $scope.geoloc.lng,
+      'category': $routeParams['category'],
+      'pics': [ {}, {}, {} ], //show 3 empty pic slots.
+    }; 
+    $scope.addpostSubmit = function (ev) { // Submit new post.
+      var url = "api/v1/posts/";
+      var params = $scope.addpost;
+      log('Pics length: '+$scope.addpost['pics'].length);
+      for (var i=0; i<params['pics'].length; i++) { //submit only the resized base64 values.
+        log('Doing pic '+i);
+        if (params['pics'][i]['resized'] && params['pics'][i]['resized']['dataURL']) {
+          log('Attach pic "'+i+'" with "'+params['pics'][i]['resized']['dataURL'].length+'" Bytes.')
+          params['pics'][i] = params['pics'][i]['resized']['dataURL'];
+        } else {
+          params['pics'][i] = '';
+        }
+      }
+      $http.post(url, { params: params }).then(
+        function (response) {
+          log('OK');
+          log(response);
+        },
+        function (response) {
+          log('ERROR');
+          log(response);
+        }
+      );
+    };
+  });
+}]);
+
+app.controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function ($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc){
+
+  $scope.addFabPath = 
+
+  $scope.toggleSidenav = function (menuId) {
     $mdSidenav(menuId).toggle();
   };
-
   $scope.sidebarList = [
     { title: "Some title", description: "And the description for the some title.", done: true },
     { title: "Another one", description: "Another description for another title.", done: false }
   ];
-
-  $scope.showAddPost = function (ev) {
-    log('--- AppController.showAddPost() ---');
-    // Figure out if we are already in a specific category here.
-    if ($routeParams.country && $routeParams.region && $routeParams.city && $routeParams.cgroup && $routeParams.category) {
-
-      $scope.categoriesPromise.then(function(){$scope.category = $scope.getCategory($routeParams['category'])});
-
-      // https://material.angularjs.org/latest/#/api/material.components.dialog/service/$mdDialog
-      $mdDialog.show({
-        scope: $scope, // use parent scope in template
-        controller: function ($scope, $mdDialog, $routeParams, Geoloc) {
-
-          $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-          $scope.expiresDeltaOptions = [["7", "1 semana"], ["30", "1 mes"], ["91", "3 meses"], ["365", "1 año"], ["1095", "3 años"]];
-
-          $scope.addpostSubmit = function (ev) {
-            $mdDialog.hide().then(function(){
-              alert('addpostSubmit() clicked!');
-            });
-          };
-          $scope.hide = function () {
-            $mdDialog.hide();
-          };
-          $scope.cancel = function () {
-            $mdDialog.cancel();
-          };
-          $scope.answer = function (answer) {
-            alert(answer);
-            $mdDialog.hide(answer);
-          };
-        },
-        templateUrl: 'addpost.html',
-        parent: angular.element(document.body),
-        targetEvent: ev,
-        disableParentScroll: true,
-        clickOutsideToClose: false,
-        escapeToClose: true,
-        onComplete: function () {
-          // focus email input
-        }
-      })
-      .then(
-        function(answer) {
-          $scope.status = 'You said the information was "' + answer + '".';
-        }, function() {
-          $scope.status = 'You cancelled the dialog.';
-        });
-    } else {
-      $mdDialog.show(
-        $mdDialog.alert()
-          .parent(angular.element(document.querySelector('#popupContainer')))
-          .clickOutsideToClose(true)
-          .title(tr('Selecciona la categoria'))
-          .content(tr('Para agregar un anuncio, primero selecciona la categoria en la cual lo quieres publicar.'))
-          .ariaLabel(tr('Selecciona la categoria alert dialog'))
-          .ok(tr('Cerrar'))
-          .targetEvent(ev));
-    }
-  };
-
+  $scope.addFabInfoDialog = function (ev) {
+    $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer'))).clickOutsideToClose(true).title(tr('Selecciona la categoria')).content(tr('Para agregar un anuncio, primero selecciona la categoria en la cual lo quieres publicar.')).ariaLabel(tr('Selecciona una categoria')).ok(tr('Cerrar')).targetEvent(ev));
+  }
 }]);
 
   </script>

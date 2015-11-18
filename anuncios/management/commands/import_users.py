@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import, division,
                         print_function)
-
 import pymysql
 import sys
-from django.db.utils import IntegrityError
+
+# from django.db.utils import IntegrityError
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils.timezone import utc
@@ -32,8 +32,10 @@ row[2].replace(microsecond=0).replace(tzinfo=utc)
     17  is_admin        tinyint(1)
 """
 
-conn = pymysql.connect( user='root', passwd='pla', db='usr_web1_2', charset='utf8')
+conn = pymysql.connect(user='root', passwd='pla',
+                       db='usr_web1_2', charset='utf8')
 print('--> Old database connected.')
+
 
 class Command(BaseCommand):
     args = ''
@@ -63,21 +65,29 @@ class Command(BaseCommand):
         ok, skip = 0, 0
 
         for row in cursor:
-            print('Adding user #{} "{}" "{}"...'.format(row[0], row[2], row[3]), end=" ")
+            print('Adding user #{} "{}" "{}"...'.format(row[0], row[2],
+                                                        row[3]), end=" ")
             user = User()
             user.id = row[0]
             user.username = row[2]
             user.set_password(row[1])
             user.email = row[2]
             user.first_name = row[3][0:30]
-            try: user.last_login = row[12].replace(microsecond=0).replace(tzinfo=utc)
-            except AttributeError: user.last_login = None
-            try: user.date_joined = row[10].replace(microsecond=0).replace(tzinfo=utc)
-            except AttributeError: user.date_joined = None
+            try:
+                user.last_login = row[12].replace(microsecond=0)\
+                                         .replace(tzinfo=utc)
+            except AttributeError:
+                user.last_login = None
+            try:
+                user.date_joined = row[10].replace(microsecond=0)\
+                                          .replace(tzinfo=utc)
+            except AttributeError:
+                user.date_joined = None
             try:
                 user.save()
             except:
-                print('User #{} "{}" could not be saved.'.format(row[0], row[2]))
+                print('User #{} "{}" could not be saved.'.format(row[0],
+                                                                 row[2]))
                 skip += 1
                 continue
             print('OK')

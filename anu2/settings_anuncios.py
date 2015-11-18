@@ -2,6 +2,7 @@
 from __future__ import (unicode_literals, absolute_import, division,
                         print_function)
 
+
 class ANUNCIOS:
 
     CATEGORIES = [
@@ -84,7 +85,9 @@ class ANUNCIOS:
             'title': 'Clubs y Grupos',
             'descr': 'Anuncios de clubs y grupos, grupos de música.',
         },
-        ################################################################
+
+        #####
+
         {
             'slug': 'empleo',
             'old': None,
@@ -183,7 +186,9 @@ class ANUNCIOS:
                       'solicitud y un breve resumen de tu C.V. Recuerda: '
                       'NO datos personales!'),
         },
-        ###############################################################################
+
+        #####
+
         {
             'slug': 'vivienda',
             'old': None,
@@ -232,7 +237,9 @@ class ANUNCIOS:
             'descr': ('Renta de departamentos o habitaciones para '
                       'estudiantes.'),
         },
-        ###############################################################################
+
+        #####
+
         {
             'slug': 'vender-y-comprar',
             'old': None,
@@ -316,7 +323,9 @@ class ANUNCIOS:
             'descr': ('Ofrece o busca cosas gratis. Regala lo que ya no '
                       'utilizas.'),
         },
-        ###############################################################################
+
+        #####
+
         {
             'slug': 'servicios',
             'old': None,
@@ -357,7 +366,9 @@ class ANUNCIOS:
             'title': 'Otros Servicios',
             'descr': ('Ofertas para otros servicios.'),
         },
-        ###############################################################################
+
+        #####
+
         {
             'slug': 'clases-y-talleres',
             'old': None,

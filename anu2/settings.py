@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import, division,
                         print_function)
+import os
+import pymysql
 
-import os, re, pymysql
+# Import namespaced settings for anuncios app.
+from .settings_anuncios import ANUNCIOS
+# Import private settings, not in GIT.
+from .settings_private import *
+
 pymysql.install_as_MySQLdb()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +30,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, '/static_collected/')
 if not PRODUCTION:
     # The Angular app is here. On the live system, the app is served by
     # nginx directly, same as the other static files.
-    STATICFILES_DIRS = ( os.path.join(BASE_DIR, "ng-app"), )
+    STATICFILES_DIRS = (os.path.join(BASE_DIR, "ng-app"), )
 MEDIA_URL = '/p/'
 MEDIA_ROOT = 'media'
 INSTALLED_APPS = (
@@ -56,7 +62,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.media', #  {{ MEDIA_URL }} in templates
+                'django.template.context_processors.media',  # {{MEDIA_URL}}
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -68,17 +74,11 @@ TEMPLATES = [
 
 ###############################################################################
 
+
 # REST framework settings
 # See http://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.PageNumberPagination',
     'PAGINATE_BY': 100,
 }
-
-###############################################################################
-
-# Import namespaced settings for anuncios app.
-from .settings_anuncios import ANUNCIOS
-
-# Import private settings, not in GIT.
-from .settings_private import *

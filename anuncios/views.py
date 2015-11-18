@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import, division,
                         print_function)
-
 import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
-from django.shortcuts import render, get_object_or_404
-from django.template.loader import get_template
-from django.views.generic.base import View, TemplateView
+from django.shortcuts import get_object_or_404
+# from django.template.loader import get_template
+from django.views.generic.base import View  #, TemplateView
 from django.utils.translation import get_language
 
 from rest_framework import status
@@ -17,7 +16,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from anuncios.models import Post
+from anuncios.models import Post, Pic  #, Inbox
 from anuncios.serializers import PostSerializer, UserSerializer
 from anuncios.utils import get_category_item
 
@@ -31,33 +30,37 @@ class AppHTMLView(View):
         with open(fn, 'r') as fh:
             return HttpResponse(fh.read())
 
+
 class CategoriesListAPIView(APIView):
 
     def get(self, request):
         res = {}
         res['categories'] = settings.ANUNCIOS.CATEGORIES
-        res['location'] = { }
+        res['location'] = {}
         return Response(res)
+
 
 class CategoriesItemAPIView(APIView):
 
     def get(self, request, pk):
         return Response(get_category_item(pk))
 
-class PostListAPIView(generics.ListAPIView):
-    """Return a list of matching posts.
+
+class PostListAPIView(generics.ListCreateAPIView):
+    """
+    Return a list of matching posts.
 
     There are several filters that can be used to limit the number of posts
-    returned. 
+    returned.
 
-    GET lat, lng, dist: 
-        Return only posts geolocated within "dist" km from the 
+    GET lat, lng, dist:
+        Return only posts geolocated within "dist" km from the
         geolocation "lat/lng". This can be used to have users search
-        for stuff in a certain distance from where they are, rather 
+        for stuff in a certain distance from where they are, rather
         than stuff within a certain named city.
 
     GET City.url, dist:
-        Return only posts geolocated within "dist" km from the city 
+        Return only posts geolocated within "dist" km from the city
         identified by the city's "url" value.
 
     GET City.id, dist:
@@ -82,14 +85,14 @@ class PostListAPIView(generics.ListAPIView):
         cgslug = self.request.query_params.get('cgroup', None)
         c_slug = self.request.query_params.get('category', None)
         try:
-            category = [x for x in settings.ANUNCIOS.CATEGORIES 
-                        if x['slug']==c_slug][0]
+            category = [x for x in settings.ANUNCIOS.CATEGORIES
+                        if x['slug'] == c_slug][0]
         except IndexError:
             raise Http404
         # Check for valid parent (cgroup) category.
         try:
-            cgroup = [x for x in settings.ANUNCIOS.CATEGORIES 
-                      if x['slug']==cgslug][0]
+            cgroup = [x for x in settings.ANUNCIOS.CATEGORIES
+                      if x['slug'] == cgslug][0]
         except IndexError:
             raise Http404
         # Finally, check that cgroup is in fact the parent for category.
@@ -100,7 +103,8 @@ class PostListAPIView(generics.ListAPIView):
         # geolocation.
         queryset = Post.objects.filter(category=category['title'])
         if city_url:
-            kwargs = {'url':city_url, 'language':lg, 'type':3, 'is_main':True}
+            kwargs = {'url': city_url, 'language': lg, 'type': 3,
+                      'is_main': True}
             city_id = get_object_or_404(AltName, **kwargs).geoname_id
         if city_id:
             city = get_object_or_404(City, pk=city_id)
@@ -114,25 +118,47 @@ class PostListAPIView(generics.ListAPIView):
 
     serializer_class = PostSerializer
     paginate_by = 100
-    #permission_classes = (IsAdminUser,)
-    #pagination_class = LargeResultsSetPagination
+    # permission_classes = (IsAdminUser,)
+    # pagination_class = LargeResultsSetPagination
+
+    def create(self, request, *args, **kwargs):
+        data = request.data['params']
+        data['user'] = None
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        pic_urls = []
+        if hasattr(data, 'pics') and isinstance(data['pics'], list):
+            for pic in data['pics']:
+                if pic:
+                    p = Pic.create_from_base64(pic)
+                    pic_urls.append(p.get_url())
+        # headers = self.get_success_headers(serializer.data)
+        # return Response(serializer.data + pic_urls,
+        #                status=status.HTTP_201_CREATED, headers=headers)
+        return Response([], status=status.HTTP_303_SEE_OTHER,
+                        headers={'Location': '/'})
+
 
 class PostItemAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = PostSerializer
     model = serializer_class.Meta.model
-    lookup_field = 'pk' # default, added here only for verbosity.
-    lookup_url_kwarg = 'pk' # default, -"-
+    lookup_field = 'pk'  # default, added here only for verbosity.
+    lookup_url_kwarg = 'pk'  # default, -"-
     queryset = Post.objects.all()
-    #def get_queryset(self):
+
+    # def get_queryset(self):
     #    print('THIS IS get_queryset() !')
     #    return Post.objects.filter(pk=self.kwargs['pk'])
+
 
 class UserListAPIView(generics.ListCreateAPIView):
 
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     paginate_by = 10
+
 
 class UserItemAPIView(generics.RetrieveUpdateDestroyAPIView):
 

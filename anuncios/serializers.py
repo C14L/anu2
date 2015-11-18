@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from anuncios.models import Post
 
+
 class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -16,6 +17,7 @@ class PostSerializer(serializers.ModelSerializer):
           'count_views', 'count_updates', 'count_messages',
           'is_nsfw', 'is_public', 'is_delete'
         )
+
 
 class UserSerializer(serializers.ModelSerializer):
 
