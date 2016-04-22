@@ -1,25 +1,18 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division,
-                        print_function)
 import os
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
-# from django.template.loader import get_template
-from django.views.generic.base import View  #, TemplateView
 from django.utils.translation import get_language
-
-from rest_framework import status
+from django.views.generic.base import View
 from rest_framework import generics
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from anuncios.models import Post, Pic  #, Inbox
+from anuncios.models import Post
 from anuncios.serializers import PostSerializer, UserSerializer
 from anuncios.utils import get_category_item
-
 from dtrcity.models import boundingBox, City, AltName
 
 
@@ -31,22 +24,20 @@ class AppHTMLView(View):
             return HttpResponse(fh.read())
 
 
-class CategoriesListAPIView(APIView):
+class CategoryList(APIView):
 
     def get(self, request):
-        res = {}
-        res['categories'] = settings.ANUNCIOS.CATEGORIES
-        res['location'] = {}
-        return Response(res)
+        return Response({'location': {},
+                         'categories': settings.ANUNCIOS['CATEGORIES']})
 
 
-class CategoriesItemAPIView(APIView):
+class CategoryDetail(APIView):
 
     def get(self, request, pk):
         return Response(get_category_item(pk))
 
 
-class PostListAPIView(generics.ListCreateAPIView):
+class PostList(generics.ListCreateAPIView):
     """
     Return a list of matching posts.
 
@@ -85,13 +76,13 @@ class PostListAPIView(generics.ListCreateAPIView):
         cgslug = self.request.query_params.get('cgroup', None)
         c_slug = self.request.query_params.get('category', None)
         try:
-            category = [x for x in settings.ANUNCIOS.CATEGORIES
+            category = [x for x in settings.ANUNCIOS['CATEGORIES']
                         if x['slug'] == c_slug][0]
         except IndexError:
             raise Http404
         # Check for valid parent (cgroup) category.
         try:
-            cgroup = [x for x in settings.ANUNCIOS.CATEGORIES
+            cgroup = [x for x in settings.ANUNCIOS['CATEGORIES']
                       if x['slug'] == cgslug][0]
         except IndexError:
             raise Http404
@@ -140,7 +131,7 @@ class PostListAPIView(generics.ListCreateAPIView):
                         headers={'Location': '/'})
 
 
-class PostItemAPIView(generics.RetrieveUpdateDestroyAPIView):
+class PostDetail(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = PostSerializer
     model = serializer_class.Meta.model
@@ -153,14 +144,14 @@ class PostItemAPIView(generics.RetrieveUpdateDestroyAPIView):
     #    return Post.objects.filter(pk=self.kwargs['pk'])
 
 
-class UserListAPIView(generics.ListCreateAPIView):
+class UserList(generics.ListCreateAPIView):
 
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     paginate_by = 10
 
 
-class UserItemAPIView(generics.RetrieveUpdateDestroyAPIView):
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return User.objects.get(pk=self.request.pk)

@@ -1,6 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division,
-                        print_function)
+from django.conf import settings
+from django.conf.urls import include, url
+from django.contrib import admin
+from anuncios import views, signals
+import dtrcity.urls
+
 
 """
 ------------------+--------------+--------------+--------------+--------------+
@@ -16,34 +19,29 @@ REST layout:      | GET          | POST         | PUT          | DELETE       |
 
 """
 
-from django.conf import settings
-from django.conf.urls import include, url
-from django.contrib import admin
-from anuncios import views
-import dtrcity.urls
-
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^dtrcity/', include(dtrcity.urls)),
 
     url(r'^api/v1/users/$',
-        views.UserListAPIView.as_view(), name="user-item"),
+        views.UserList.as_view(), name="user-item"),
     url(r'^api/v1/users/(?P<pk>[0-9]+)$',
-        views.UserItemAPIView.as_view(), name="user-list"),
+        views.UserDetail.as_view(), name="user-list"),
 
     url(r'^api/v1/posts/$',
-        views.PostListAPIView.as_view(), name="post-list"),
+        views.PostList.as_view(), name="post-list"),
     url(r'^api/v1/posts/(?P<pk>[0-9]+)/$',
-        views.PostItemAPIView.as_view(), name="post-item"),
+        views.PostDetail.as_view(), name="post-item"),
 
     url(r'^api/v1/categories/$',
-        views.CategoriesListAPIView.as_view(), name="categories-list"),
+        views.CategoryList.as_view(), name="categories-list"),
     url(r'^api/v1/categories/(?P<pk>[a-z0-9-]+)/$',
-        views.CategoriesItemAPIView.as_view(), name="categories-item"),
+        views.CategoryDetail.as_view(), name="categories-item"),
 
     url(r'^.*$', views.AppHTMLView.as_view(), name="app"),
 ]
+
 
 if not settings.PRODUCTION:
     from django.conf.urls.static import static

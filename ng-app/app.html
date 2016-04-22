@@ -1,7 +1,7 @@
-<html lang="en" ng-app="AnunciosApp">
+<html lang="en" ng-app="anu2app">
   <head>
     <meta name="viewport" content="initial-scale=1" />
-    <base href="/"></base>
+    <base href="/">
     <title></title>
     <meta name="description" content="">
     <meta name="robots" content="">
@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.9.4/angular-material.min.css">
     <style>
-
-body { overflow: hidden; }
 
 .md-fab-top-right { top: 28px !important; } /* needs 28px top margin to be aligned with header bar. */
 .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
@@ -24,8 +22,8 @@ body { overflow: hidden; }
 .item-list-view .post-item.expired a { color: #C0C0C0; }
 .item-list-view .post-item a:hover { text-decoration: underline; }
 
-.home-view .category-list-view, 
-.home-view .category-list-view h2, 
+.home-view .category-list-view,
+.home-view .category-list-view h2,
 .home-view .category-list-view span { color: #909090; }
 .home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
 .home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
@@ -34,7 +32,7 @@ body { overflow: hidden; }
 
 .postitem-view {  }
 .postitem-view a { text-decoration: none; }
-.postitem-view.expired, 
+.postitem-view.expired,
 .postitem-view.expired a { color: #C0C0C0; }
 
 .add-post-view .todolist { list-style: none; margin: 0; padding: 0; background-color: #E3E3E3; }
@@ -65,7 +63,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
     </script>
   </head>
-  <body layout="column" ng-controller="AppController">
+  <body ng-controller="AppController" layout="column" layout-fill>
 
     <md-toolbar layout="row">
       <div class="md-toolbar-tools">
@@ -80,7 +78,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
     <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{addFabStatus}}/add" class="md-fab md-fab-top-right" aria-label="{{tr('agregar')}}"><md-icon style="margin-top:14px;margin-left:-1px;" md-svg-src="static/icons/android-add.svg"></md-icon></md-button>
 
-    <div layout="row" flex>
+    <md-content layout="row" flex>
       <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
         <div hide-gt-md class="md-toolbar-tools">
           <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
@@ -101,7 +99,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
       <md-content id="content" layout="column" flex class="md-padding" ng-view="main">
           Loading...
       </md-content>
-    </div>
+    </md-content>
   </body>
 
 <!--
@@ -274,7 +272,6 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </div>
       </form>
   </script>
-
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-route.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.min.js"></script>
@@ -282,455 +279,8 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
   <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.js"></script>
   <script src="static/libs/angularjs-imageupload-directive/public/javascripts/imageupload.js"></script>
   <script src="static/src/utils.js"></script>
-  <script>
-
-var app = angular.module('AnunciosApp', ['ngRoute', 'ngMaterial', 'imageupload']);
-
-// Setup //////////////////////////////////////////////////////////////////////
-
-app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
-    $locationProvider.html5Mode(true);
-    $routeProvider
-    .when( '/', {
-        controller: 'HomeController', // show home page
-        templateUrl: 'home.html'
-    })
-    .when( '/:country/:region/:city', {
-        controller: 'LocationController',
-        templateUrl: 'location.html'
-    })
-    .when( '/:country/:region/:city/:cgroup', {
-        controller: 'CategoryGroupController',
-        templateUrl: 'categorygroup.html'
-    })
-    .when( '/:country/:region/:city/:cgroup/:category', {
-        controller: 'CategoryController',
-        templateUrl: 'category.html'
-    })
-    .when( '/:country/:region/:city/:cgroup/:category/add', {
-        controller: 'AddPostItemController',
-        templateUrl: 'addpostitem.html'
-    })
-    .when( '/:country/:region/:city/:cgroup/:category/:postid', {
-        controller: 'PostItemController',
-        templateUrl: 'postitem.html'
-    })
-    .otherwise({ redirectTo: '/' });
-}]);
-
-app.run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
-
-  $rootScope.addFabStatus = 1; // 0=hide; 1=show but disallow add; [String]=show and allow add. URL of href.
-  $rootScope.path = $location.path();
-  $rootScope.categories = [];
-  $rootScope.categoryTree = {};
-
-  $rootScope.site = {
-    'title': 'Anuncios1.com'
-  };
-  $rootScope.page = {
-    'h1': 'Anuncios Clasificados', 
-    'title': 'Anuncios Clasificados - Anuncios1.com',
-    'home_url': '/',
-  };
-
-  $rootScope.categoriesPromise = $http.get('/api/v1/categories/').then(
-    function(res){
-      $rootScope.categories = res['data']['categories'];
-      
-      // Build a tree from the categories list.
-      for (var i=0; i<$rootScope.categories.length; i++){
-        var item = $rootScope.categories[i];
-        if (!item['parent']){
-          $rootScope.categoryTree[item['slug']] = item;
-          $rootScope.categoryTree[item['slug']]['children'] = [];
-        }
-      }
-      
-      for (var i=0; i<$rootScope.categories.length; i++){
-        var item = $rootScope.categories[i];
-        if (item['parent']){
-          if ($rootScope.categoryTree[item['parent']]){
-            $rootScope.categoryTree[item['parent']]['children'].push(item) 
-          } else {
-            log('Can not add item "'+item['slug']+'", because parent "'+item['parent']+'" does not exist!');
-          }
-        }
-      }
-    }
-  );
-
-  // Allow the FAB "add" button to show the "add post" page.
-  $rootScope.setAddFabStatus = function(val) {
-    $rootScope.addFabStatus = val;
-  }
-
-  // Do stuff each time the route successfully changes.
-  $rootScope.$on('$routeChangeSuccess', function(event) {
-      // Reset FAB "add" button to default "disalow add" (1) state.
-      $rootScope.addFabStatus = 1;
-      // Push URL changes to Google Analytics
-      //$window.ga('send', 'pageview', { page: $location.path() });
-  });
-
-  // Wrapper for the tr() translation function.
-  $rootScope.tr = function (str, arr) {
-    return tr(str, arr);
-  }
-
-  // Return category by slug, including parent etc data.
-  $rootScope.getCategory = function(slug){
-    var li = $rootScope.categories.filter(function(el){ return el.slug == slug; });
-    if (li.length < 1) return null;
-    if (li.length > 0) {
-      if (typeof(li[0]['parent']) === 'string'){
-        li[0]['parent'] = $rootScope.getCategory(li[0]['parent']);
-      }
-      return li[0];
-    }
-  };
-}]);
-
-// Factories //////////////////////////////////////////////////////////////////
-
-app.factory('GeolocFinder', ['$q', '$http', '$window', function GeolocFinderFactory($q, $http, $window){
-  // Return the geolocation from the browser API, then query dtrcity for the
-  // name of the nearest city and resolve by returning the city's data object.
-  var deferred = $q.defer();
-
-  if ($window.navigator && $window.navigator.geolocation){
-    $window.navigator.geolocation.getCurrentPosition(function(loc, timestamp){
-      var url = 'dtrcity/api/v1/city-by-latlng.json';
-      var params = { 'latitude': loc.coords.latitude, 
-                     'longitude': loc.coords.longitude,
-                     'accuracy': loc.coords.accuracy };
-      $http.get(url, {params:params}).then(
-        function(response){
-          deferred.resolve(response.data);
-        }, function(response){
-          log('No city data received from server.');
-          deferred.reject();
-        }
-      );
-    },
-    function(err){
-      log('Browser geolocation API returned an error.');
-      deferred.reject();
-    },
-    {
-      maximumAge: 0, // age of the location data in cache
-      timeout: 10000, // request timeout
-      enableHighAccuracy: true, // may give more accurate results
-    });
-  } else {
-    log('Browser geolocation API not found.');
-    deferred.reject();
-  }
-
-  return deferred.promise;
-}]);
-
-app.factory('Categories', ['$q', '$http', function CategoriesFactory($q, $http){
-  /* TODO: Return the list of categories. First from $http then from buffer. */
-}]);
-
-app.factory('Posts', ['$q', '$http', '$sce', function PostsFactory($q, $http, $sce){
-  var list_cache_for = null; // URL path for cached list.
-  var list_cache = []; // List of Post data items.
-
-  function completeFields(post){
-        post['text_html'] = $sce.trustAsHtml(textfilter(post['text']));
-        // Set true or false if the ad is already expired.
-        post['expired'] = (new Date(post['expires'])) < (new Date());
-        return post;
-  }
-  function getItem(postid){
-    // Load a single post by Id, either from cache or from server.
-    var deferred = $q.defer();
-    var url = 'api/v1/posts/' + postid + '/';
-    $http.get(url).then(
-      function(response){ deferred.resolve(completeFields(response.data)); },
-      function(response){ deferred.reject(); }
-    );
-    return deferred.promise;
-  }
-  function getList(city_url, cgroup, category, page){
-    // Get a list of items by URL.
-    // 
-    // city_url - URL fragment "country/region/city".
-    // cgroup - Category group slug.
-    // category - Category slug.
-    //
-    var deferred = $q.defer();
-    // Check for cache.
-    basepath = '/' + city_url + '/' + cgroup  + '/' + category;
-    list_for = basepath + '?page=' + page;
-    if (list_cache_for && list_cache_for===list_for){
-      deferred.resolve(list_cache);
-    }
-    // Not cached, get from server.
-    var url = 'api/v1/posts/';
-    var params = { city_url:city_url, cgroup:cgroup, category:category, dist:50, page:page };
-    $http.get(url, {params:params}).then(
-      function(response){
-        list_cache_for = list_for;
-        list_cache = response.data;
-        // Fill in addition fields.
-        for (var i=0; i<list_cache.results.length; i++)
-          list_cache.results[i] = completeFields(list_cache.results[i]);
-        // Extract the actual "previous" and "next" page numbers.
-        var result = (/\Wpage=(\d+)/g).exec(list_cache['previous']);
-        list_cache['previous_page'] = result ? result[1] : null;
-        list_cache['previous'] = result ? basepath + '?page=' + result[1] : null;
-        if (page == 2) list_cache['previous'] = basepath // special case, only the path with no page number.
-        var result = (/\Wpage=(\d+)/g).exec(list_cache['next']);
-        list_cache['next_page'] = result ? result[1] : null;
-        list_cache['next'] = result ? basepath + '?page=' + result[1] : null;
-
-        // Resolve.
-        deferred.resolve(list_cache);
-      },
-      function(response){ deferred.reject(); }
-    );
-    return deferred.promise;
-  }
-  
-  return {
-    getItem: getItem,
-    getList: getList,
-  };
-}]);
-
-app.factory('Geoloc', ['$q', '$http', '$routeParams', function GeolocFactory($q, $http, $routeParams){
-  /* Return data on current geographic location, either from buffer or $http request */
-  var buffer = [];  // Buffer previous location items.
-  var maxbuf = 100; // Fifo-remove older items.
-
-  function getByUrl(item_url){
-    var deferred = $q.defer();
-    var found = false;
-    if (typeof(item_url) === 'undefined') {
-      if ($routeParams.country && $routeParams.region && $routeParams.city) {
-        log($routeParams.country); log($routeParams.region); log($routeParams.city);
-        var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-      }
-    }
-    if (typeof(item_url) === 'undefined') {
-      deferred.reject();
-    } else {
-      for (var i=0; i<buffer.length; i++){
-        // Try to find in buffer
-        if (buffer[i]['url'] == item_url){
-          deferred.resolve(buffer[i]);
-          found = true;
-        }
-      }
-      if (!found){
-        // Not in buffer, load from server.
-        var url = '/dtrcity/api/v1/' + item_url + '.json';
-        $http.get(url).then(
-          function(response){ deferred.resolve(response.data); },
-          function(response){ deferred.reject(); }
-        );
-      }
-    }
-    return deferred.promise;
-  }
-  return {
-    getByUrl: getByUrl,
-  };
-}]);
-
-// Controller /////////////////////////////////////////////////////////////////
-
-app.controller('HomeController', ['$scope', '$http', '$window', 'GeolocFinder', function($scope, $http, $window, GeolocFinder){
-
-  $scope.page['title'] = tr("Anuncios Clasificados", []);
-  $scope.page['h1'] = $scope.page['title'];
-  $scope.page['description'] = tr("Anuncios clasificados locales de tu ciudad, encuentra todas las mejores ofertas y artículos interesantes.", []);
-  setTitle($scope.page['title']);
-  setDescription($scope.page['description']);
-
-  // Return a list of matches for the autocomplete input city finder.
-  $scope.getMatches = function(searchText){
-    if (searchText.length < 2) return [];
-    var url = '/dtrcity/api/v1/autocomplete-crc.json';
-    var params = { 'params': { 'q': searchText, 'fields':'crc url' }};
-    return $http.get(url, params).then(
-      function(response){
-        return response.data; 
-      }
-    );
-  };
-  // Once we have a geolocation, call this to redirect to geoloc's page.
-  $scope.locationSelected = function(item){
-    if (item) $window.location.href = item.url;
-  }
-  // Try to get the user's geolocation and redirect them to their own city's
-  // content page automatically. See http://diveintohtml5.info/geolocation.html
-  // The browser's "loc" object contains user's latitude and longitude in the
-  // loc.coords.latitude and loc.coords.longitude properties. Look up  the
-  // nearest city in Geonames database.
-  $scope.isManualCityFinder = false; // don't show manual input field.
-  $scope.isSearchingLocation = true; // do show loading indicator.
-  $scope.GeolocFinderPromise = GeolocFinder.then(
-    function(cityItem){
-      log('Geolocation received from API, our city is "' + cityItem.crc + '", now redirecting...');
-      $scope.isSearchingLocation = false;
-      $scope.locationSelected(cityItem);
-    },
-    function(){
-      log('No geolocation from API, switch to manual!')
-      $scope.isSearchingLocation = false;
-      $scope.isManualCityFinder = true;
-    }
-  );
-}]);
-
-app.controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
-
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
-    $scope.category = $scope.getCategory($routeParams['category']);
-    $scope.page['home_url'] = '/';
-    $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.geoloc['crc']]);
-    $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.geoloc['crc'], $scope.geoloc['name'], $scope.geoloc['country_name']]);
-    setTitle($scope.page['title']);
-    setDescription($scope.page['description']);
-  });
-
-}]);
-
-app.controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $routeParams, Geoloc, Posts){
-
-  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-  var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
-  $scope.setAddFabStatus(fab_url); 
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-  $scope.postsPromise = Posts.getList(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page||1).then(function(data){ $scope.posts = data; });
-
-  // When city data and category data promises resolve, show the page with all
-  // ads for this particular city.
-  $q.all([$scope.postsPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
-    $scope.category = $scope.getCategory($routeParams['category']);
-    // Prepare URL properties for each post.
-    for (var i=0; i<$scope.posts.results.length; i++){
-      $scope.posts.results[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts.results[i]['id'];
-    }
-
-    // Prepare page values.
-    $scope.page['home_url'] = '/' + $scope.geoloc['url'];
-    $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.count]);
-    $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
-    setTitle($scope.page['title']);
-    setDescription($scope.page['description']);
-  });
-}]);
-
-app.controller('CategoryGroupController', ['$scope', '$q', '$routeParams', 'Geoloc', function($scope, $q, $routeParams, Geoloc){
-
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-  $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function(){
-    $scope.page['home_url'] = '/' + $scope.geoloc['url'];
-    $scope.page['title'] = tr("", []);
-    $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = "";
-    setTitle($scope.page['title']);
-    setDescription($scope.page['description']);
-  });
-}]);
-
-app.controller('PostItemController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $routeParams, Geoloc, Posts){
-  //
-  // Display a page for a single Post item.
-  //
-  var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
-  var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
-  $scope.setAddFabStatus(fab_url);
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-  $scope.postPromise = Posts.getItem($routeParams.postid).then(function(data){ $scope.post = data; });
-
-  $q.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
-    $scope.category = $scope.getCategory($routeParams['category']);
-    $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
-
-    $scope.page['title'] = $scope.post['title'] + ' (' + $scope.geoloc['crc'] + ')';
-    $scope.page['h1'] = $scope.post['title'];
-    $scope.page['description'] = "";
-
-    setTitle($scope.page['title']);
-    setDescription($scope.page['description']);
-  });
-}]);
-
-app.controller('AddPostItemController', ['$scope', '$q', '$http', '$routeParams', 'Geoloc', 'Posts', function($scope, $q, $http, $routeParams, Geoloc, Posts){
-  //
-  // Display a page for a single Post item.
-  //
-  $scope.setAddFabStatus(0); // 0=hide fab
-  $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-  $scope.postPromise = Posts.getItem($routeParams.postid).then(function(data){ $scope.post = data; });
-
-  $q.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(function(){
-
-    $scope.category = $scope.getCategory($routeParams['category']);
-    $scope.expiresDeltaOptions = [["7", "1 semana"], ["30", "1 mes"], ["91", "3 meses"], ["365", "1 año"], ["1095", "3 años"]];
-    $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
-    $scope.page['title'] = tr('Agregar nuevo anuncio');
-    $scope.page['h1'] = $scope.page['title'];
-    $scope.page['description'] = tr('Agregar nuevo anuncio a la categoria {0} en la ciudad de {1}, {2}.', [$scope.category['title'], $scope.geoloc['city_name'], $scope.geoloc['country_name'] ]);
-    setTitle($scope.page['title']);
-    setDescription($scope.page['description']);
-    $scope.addpost = {
-      'lat': $scope.geoloc.lat, 
-      'lng': $scope.geoloc.lng,
-      'category': $routeParams['category'],
-      'pics': [ {}, {}, {} ], //show 3 empty pic slots.
-    }; 
-    $scope.addpostSubmit = function (ev) { // Submit new post.
-      var url = "api/v1/posts/";
-      var params = $scope.addpost;
-      log('Pics length: '+$scope.addpost['pics'].length);
-      for (var i=0; i<params['pics'].length; i++) { //submit only the resized base64 values.
-        log('Doing pic '+i);
-        if (params['pics'][i]['resized'] && params['pics'][i]['resized']['dataURL']) {
-          log('Attach pic "'+i+'" with "'+params['pics'][i]['resized']['dataURL'].length+'" Bytes.')
-          params['pics'][i] = params['pics'][i]['resized']['dataURL'];
-        } else {
-          params['pics'][i] = '';
-        }
-      }
-      $http.post(url, { params: params }).then(
-        function (response) {
-          log('OK');
-          log(response);
-        },
-        function (response) {
-          log('ERROR');
-          log(response);
-        }
-      );
-    };
-  });
-}]);
-
-app.controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function ($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc){
-
-  $scope.addFabPath = 
-
-  $scope.toggleSidenav = function (menuId) {
-    $mdSidenav(menuId).toggle();
-  };
-  $scope.sidebarList = [
-    { title: "Some title", description: "And the description for the some title.", done: true },
-    { title: "Another one", description: "Another description for another title.", done: false }
-  ];
-  $scope.addFabInfoDialog = function (ev) {
-    $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer'))).clickOutsideToClose(true).title(tr('Selecciona la categoria')).content(tr('Para agregar un anuncio, primero selecciona la categoria en la cual lo quieres publicar.')).ariaLabel(tr('Selecciona una categoria')).ok(tr('Cerrar')).targetEvent(ev));
-  }
-}]);
-
-  </script>
+  <script src="static/src/app.js"></script>
+  <script src="static/src/services.js"></script>
+  <script src="static/src/controllers.js"></script>
+  <script src="static/src/directives.js"></script>
 </html>

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division,
-                        print_function)
-
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from anuncios.models import Post
