@@ -6,23 +6,30 @@ import random
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.text import slugify
 from django.utils.timezone import now
 from imagekit.models import ProcessedImageField
 from os.path import join
 from pilkit.processors import ResizeToFit
 
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, related_name='profile')
+from dtrcity.models import City
 
 
 def get_image_path():
     return 'post-pictures/{0}/{1}'.format(date.today().year, str(uuid4()))
 
 
+def make_username(email):
+    return slugify(email).lower()[:30]
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, related_name='profile')
+
+
 class Post(models.Model):
 
-    EXPIRE_DAYS = getattr(settings.ANUNCIOS, 'EXPIRE_DAYS', 30)
+    EXPIRE_DAYS = getattr(settings.ANUNCIOS, 'EXPIRE_DAYS', 90)
     CATEGORY_CHOICES = [(x['slug'], x['title']) for x in getattr(
         settings.ANUNCIOS, 'CATEGORIES', []) if x['parent'] != '']
 
@@ -34,8 +41,16 @@ class Post(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
 
+    # The city closest to the coords
+    city = models.ForeignKey(City, null=True, default=None)
+
+    # The raw name strings for faster lookup
+    city_name = models.CharField(max_length=100, default='', blank=True)
+    region_name = models.CharField(max_length=100, default='', blank=True)
+    country_name = models.CharField(max_length=100, default='', blank=True)
+
     title = models.CharField(max_length=200)  # for <h1> and <title>
-    text = models.TextField(max_length='')  # markdown
+    text = models.TextField()  # markdown
 
     pic_1 = ProcessedImageField(upload_to=get_image_path,
                                 null=True, default=None,
@@ -89,7 +104,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         self.set_pin()
         if not self.expires:
-            self.expires_days(EXPIRE_DAYS)
+            self.expires_days = 90
         super().save(*args, **kwargs)
 
     def set_pin(self):

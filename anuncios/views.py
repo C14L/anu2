@@ -92,7 +92,8 @@ class PostList(generics.ListCreateAPIView):
 
         # Still here? Then create an initial Queryset, then filter further by
         # geolocation.
-        queryset = Post.objects.filter(category=category['title'])
+        queryset = Post.objects.filter(category=category['slug'])
+        print('queryset length --> {}'.format(queryset.count()))
         if city_url:
             kwargs = {'url': city_url, 'language': lg, 'type': 3,
                       'is_main': True}
