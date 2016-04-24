@@ -11,44 +11,46 @@
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.9.4/angular-material.min.css">
     <style>
 
-.md-fab-top-right { top: 28px !important; } /* needs 28px top margin to be aligned with header bar. */
-.md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
+      .md-fab.md-fab-bottom-right { position: fixed !important; top: auto; right: 20px; bottom: 20px; left: auto;  }
+      .md-fab md-icon { margin-top: 4px !important; }
 
-.category-list-view a { color: inherit; text-decoration: none; }
-.category-list-view a:hover { color: #0000FF; text-decoration: underline; }
+      .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
 
-.item-list-view .post-item a { text-decoration: none; }
-.item-list-view .post-item.expired { color: #C0C0C0; }
-.item-list-view .post-item.expired a { color: #C0C0C0; }
-.item-list-view .post-item a:hover { text-decoration: underline; }
+      .category-list-view a { color: inherit; text-decoration: none; }
+      .category-list-view a:hover { color: #0000FF; text-decoration: underline; }
 
-.home-view .category-list-view,
-.home-view .category-list-view h2,
-.home-view .category-list-view span { color: #909090; }
-.home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
-.home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
-.home-view .loading-geoloc md-progress-circular { }
-.home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
+      .item-list-view .post-item a { text-decoration: none; }
+      .item-list-view .post-item.expired { color: #C0C0C0; }
+      .item-list-view .post-item.expired a { color: #C0C0C0; }
+      .item-list-view .post-item a:hover { text-decoration: underline; }
 
-.postitem-view {  }
-.postitem-view a { text-decoration: none; }
-.postitem-view.expired,
-.postitem-view.expired a { color: #C0C0C0; }
+      .home-view .category-list-view,
+      .home-view .category-list-view h2,
+      .home-view .category-list-view span { color: #909090; }
+      .home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
+      .home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
+      .home-view .loading-geoloc md-progress-circular { background-color: green}
+      .home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
 
-.add-post-view .todolist { list-style: none; margin: 0; padding: 0; background-color: #E3E3E3; }
-.add-post-view .todolist li { display: inline-block; margin: 0; padding: 8px; color: #909090; }
-.add-post-view .todolist li.active { color: #000000; }
-.add-post-view .formfields { max-width: 500px; }
-.add-post-view .formfields md-input-container { clear: right; }
+      .postitem-view {  }
+      .postitem-view a { text-decoration: none; }
+      .postitem-view.expired,
+      .postitem-view.expired a { color: #C0C0C0; }
 
-.add-post-view .piclist { display: block; margin: 16px 0; }
-.add-post-view .piclist .pic { display: inline-block; width: 150px; height: 150px; background: #909090 url(static/icons/images.svg) center center no-repeat; background-size: cover; border: 4px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); position: relative; margin: 4px; }
-.add-post-view .piclist .pic:before { content: ' '; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,0.7); }
-.add-post-view .piclist .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
-.add-post-view .piclist .pic img { position: absolute; top: 0; left: 0; background: #F3F3F3; width: inherit; height: inherit; margin: 0; padding: 0; outline: 0; border: 0; }
-.add-post-view .piclist .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
-.add-post-view .piclist .pic .add-btn,
-.add-post-view .piclist .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
+      .add-post-view .todolist { list-style: none; margin: 0; padding: 0; background-color: #E3E3E3; }
+      .add-post-view .todolist li { display: inline-block; margin: 0; padding: 8px; color: #909090; }
+      .add-post-view .todolist li.active { color: #000000; }
+      .add-post-view .formfields { max-width: 500px; }
+      .add-post-view .formfields md-input-container { clear: right; }
+
+      .add-post-view .piclist { display: block; margin: 16px 0; }
+      .add-post-view .piclist .pic { display: inline-block; width: 150px; height: 150px; background: #909090 url(static/icons/images.svg) center center no-repeat; background-size: cover; border: 4px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); position: relative; margin: 4px; }
+      .add-post-view .piclist .pic:before { content: ' '; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,0.7); }
+      .add-post-view .piclist .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
+      .add-post-view .piclist .pic img { position: absolute; top: 0; left: 0; background: #F3F3F3; width: inherit; height: inherit; margin: 0; padding: 0; outline: 0; border: 0; }
+      .add-post-view .piclist .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
+      .add-post-view .piclist .pic .add-btn,
+      .add-post-view .piclist .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
 
     </style>
     <script>
@@ -67,24 +69,24 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
     <md-toolbar layout="row">
       <div class="md-toolbar-tools">
-        <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
-          <md-icon md-svg-src="static/icons/menu.svg" aria-label="Menu"></md-icon>
+        <md-button ng-click="toggleSidenav('left')" hide-gt-xs class="md-icon-button">
+          <md-icon>menu</md-icon>
         </md-button>
-        <h1><a href="{{page.home_url}}">{{page.h1}}</a></h1>
+        <h1><a href="{{ page.home_url }}">{{page.h1}}</a></h1>
       </div>
     </md-toolbar>
 
-    <md-button ng-if="addFabStatus==1" ng-click="addFabInfoDialog($event)" class="md-fab md-fab-top-right" aria-label="{{tr('agregar')}}"><md-icon md-svg-src="static/icons/android-add.svg"></md-icon></md-button>
+    <md-button ng-if="addFabStatus==1" ng-click="addFabInfoDialog($event)" class="md-fab md-fab-bottom-right" aria-label="{{ tr('agregar') }}"><md-icon>add</md-icon></md-button>
 
-    <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{addFabStatus}}/add" class="md-fab md-fab-top-right" aria-label="{{tr('agregar')}}"><md-icon style="margin-top:14px;margin-left:-1px;" md-svg-src="static/icons/android-add.svg"></md-icon></md-button>
+    <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{ addFabStatus }}/add" class="md-fab md-fab-bottom-right" aria-label="{{ tr('agregar') }}"><md-icon>add</md-icon></md-button>
 
-    <md-content layout="row" flex>
+    <div layout="row" flex>
       <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
         <div hide-gt-md class="md-toolbar-tools">
           <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
-            <md-icon md-svg-src="static/icons/close.svg" aria-label="Close"></md-icon>
+            <md-icon>close</md-icon>
           </md-button>
-          <h1>{{site.title}}</h1>
+          <h1>{{ site.title }}</h1>
         </div>
         <md-list>
           <md-list-item class="md-2-line" ng-repeat="item in sidebarList">
@@ -96,51 +98,44 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
           </md-list-item>
         </md-list>
       </md-sidenav>
-      <md-content id="content" layout="column" flex class="md-padding" ng-view="main">
-          Loading...
-      </md-content>
-    </md-content>
-  </body>
 
-<!--
-// Templates //////////////////////////////////////////////////////////////////
--->
+      <div id="content" layout="column" flex class="md-padding" ng-view="main">
+        Loading...
+      </div>
+    </div>
+
+  </body>
 
   <script type="text/ng-template" id="home.html">
     <div class="home-view">
-      
       <div ng-show="isSearchingLocation">
         <div class="loading-geoloc">
-          <div class="text" ng-bind="tr('Encontrando tu ciudad...')"></div>
-          <div layout="row" layout-sm="column" layout-align="space-around">
+          <div class="text">{{ tr('Encontrando tu ciudad...') }}</div>
+
+          <div layout="row" layout-xs="column" layout-align="space-around">
             <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
           </div>
         </div>
       </div>
-      
+
       <div ng-show="isManualCityFinder">
         <div class="manual-geoloc">
-          <h2 ng-bind="tr('Encuentra clasificados en tu ciudad:')"></h2>
-          <md-autocomplete 
-            md-selected-item-change="locationSelected(selectedItem)"
-            md-selected-item="selectedItem" 
-            md-search-text="searchText" 
-            md-items="item in getMatches(searchText)" 
-            md-item-text="item.crc"
-            md-delay="300"
-            md-min-length="3"
-            md-input-minlength="10"
-            md-input-maxlength="100"
-            md-autofocus="1"
-            md-autoselect="1"
-            md-select-on-match="1"
-            placeholder="{{tr('Escribe unos letras del nombre de tu ciudad...')}}">
-            <md-item-template>
-              <span md-highlight-text="searchText">{{item.crc}}</span>
-            </md-item-template>
-            <md-not-found>
-              <span>{{tr('No se encontró ninguna ciudad con este nombre.')}}</span>
-            </md-not-found>
+          <md-autocomplete flex required
+              md-selected-item-change="locationSelected(selectedItem)"
+              md-selected-item="selectedItem"
+              md-search-text="searchText"
+              md-items="item in getMatches(searchText)"
+              md-item-text="item.crc"
+              md-delay="300"
+              md-min-length="3"
+              md-input-minlength="10"
+              md-input-maxlength="100"
+              md-autofocus="1"
+              md-autoselect="1"
+              md-select-on-match="1"
+              md-floating-label="{{ tr('Escribe unos letras del nombre de tu ciudad...') }}">
+            <md-item-template><span md-highlight-text="searchText">{{ item.crc }}</span></md-item-template>
+            <md-not-found><span>{{ tr('No se encontró ninguna ciudad con este nombre.') }}</span></md-not-found>
           </md-autocomplete>
         </div>
       </div>
@@ -149,11 +144,10 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         <div ng-repeat="(slug, root) in categoryTree track by slug">
           <h2 ng-bind="root.title"></h2>
           <div ng-repeat="child in root.children track by child.slug">
-            <span ng-href="{{loc.url}}/{{root.slug}}/{{child.slug}}" ng-bind="child.title"></span>
+            <span ng-href="{{ loc.url }}/{{ root.slug }}/{{ child.slug }}" ng-bind="child.title"></span>
           </div>
         </div>
       </div>
-    
     </div>
   </script>
 
@@ -174,23 +168,26 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     <div class="category-view item-list-view">
       <h1 ng-bind="category.title"></h1>
       <p ng-bind="page.description"></p>
-      <div ng-if="!posts" layout="row" layout-sm="column" layout-align="space-around">
-        <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
-      </div>
-      <div ng-if="posts" class="post-item" ng-class="{'expired': post.expired}"
-           ng-repeat="post in posts track by post.id">
+
+      <div ng-if="posts.results" class="post-item" ng-class="{'expired': post.expired}" ng-repeat="post in posts.results track by post.id">
         <h3 class="post-title"><a href="#" ng-href="{{post.url}}">{{post.title}}</a></h3>
         <p>
-          <span>{{tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name])}}</span> - 
-          <span>{{tr('publicado:')}} {{post.publish}}</span> - 
-          <span>{{tr('valido hasta:')}} {{post.expires}}</span> - 
+          <span>{{tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name])}}</span> -
+          <span>{{tr('publicado:')}} {{post.publish}}</span> -
+          <span>{{tr('valido hasta:')}} {{post.expires}}</span> -
           <a ng-if="!post.expired" ng-href="{{post.url}}">{{tr('ver clasificado')}}</a>
           <a ng-if="post.expired" ng-href="{{post.url}}">{{tr('clasificado expirado')}}</a>
         </p>
       </div>
-      <div class="prevnext">
-        <a ng-if="posts.previous" ng-href="{{posts.previous}}" ng-bind="tr('previous')"></a>
-        <a ng-if="posts.next" ng-href="{{posts.next}}" ng-bind="tr('next')"></a>
+
+      <div ng-show="loading" layout="row" layout-sm="column" layout-align="space-around">
+        <md-progress-circular md-mode="indeterminate" class="md-hue-2" md-diameter="40"></md-progress-circular>
+      </div>
+      <div ng-show="!loading" layout="row" layout-sm="column" layout-align="space-around">
+        <md-button class="md-primary md-raised" ng-disabled="!posts.next" ng-click="load(posts.next)">
+          {{ tr('more') }}
+          <md-icon>expand_more</md-icon>
+        </md-button>
       </div>
     </div>
   </script>
@@ -227,9 +224,13 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
           <div class="piclist">
             <div class="pic" ng-repeat="pic in addpost.pics track by $index">
               <input id="inputImage{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
-              <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait"><md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular></div>
-              <img ng-if="addpost.pics[$index].resized" ng-src="{{addpost.pics[$index].resized.dataURL}}">
-              <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove"><md-icon md-svg-src="static/icons/trash-a.svg" ng-click="addpost.pics[$index].removeImage()"></md-icon></md-button>
+              <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait">
+                <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
+              </div>
+              <img src="" ng-if="addpost.pics[$index].resized" ng-src="{{ addpost.pics[$index].resized.dataURL }}">
+              <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove">
+                <md-icon ng-click="addpost.pics[$index].removeImage()">trash-a</md-icon>
+              </md-button>
             </div>
           </div>
           <md-input-container>
@@ -273,11 +274,11 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </div>
       </form>
   </script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-route.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-aria.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-aria.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.7/angular-material.min.js"></script>
   <script src="static/libs/angularjs-imageupload-directive/public/javascripts/imageupload.js"></script>
   <script src="static/src/utils.js"></script>
   <script src="static/src/app.js"></script>

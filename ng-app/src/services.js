@@ -2,43 +2,41 @@
     'use strict';
     angular.module('anu2app')
 
-    .factory('GeolocFinder', ['$q', '$http', '$window', function GeolocFinderFactory ($q, $http, $window) {
+    .factory('GeolocFinder', ['$http', '$window', function GeolocFinderFactory ($http, $window) {
         // Return the geolocation from the browser API, then query dtrcity for the
         // name of the nearest city and resolve by returning the city's data object.
-        var deferred = $q.defer();
-
-        if ($window.navigator && $window.navigator.geolocation) {
-            $window.navigator.geolocation.getCurrentPosition(
-                function (loc, timestamp) {
-                    var url = 'dtrcity/api/v1/city-by-latlng.json';
-                    var params = { 'latitude': loc.coords.latitude,
-                                   'longitude': loc.coords.longitude,
-                                   'accuracy': loc.coords.accuracy };
-                    $http.get(url, {params:params}).then(
-                        function (response) {
-                            deferred.resolve(response.data);
-                        },
-                        function (response) {
-                            log('No city data received from server.');
-                            deferred.reject();
-                        }
-                    );
-                },
-                function (error) {
-                    log('Browser geolocation API returned an error.');
-                    deferred.reject();
-                },
-                {
-                    maximumAge: 0, // age of the location data in cache
-                    timeout: 10000, // request timeout
-                    enableHighAccuracy: true, // may give more accurate results
-                });
-        } else {
-            log('Browser geolocation API not found.');
-            deferred.reject();
-        }
-
-        return deferred.promise;
+        return new Promise(function (_resolve, _reject) {
+            if ($window.navigator && $window.navigator.geolocation) {
+                $window.navigator.geolocation.getCurrentPosition(
+                    function (loc, timestamp) {
+                        var url = 'dtrcity/api/v1/city-by-latlng.json';
+                        var params = { 'latitude': loc.coords.latitude,
+                                       'longitude': loc.coords.longitude,
+                                       'accuracy': loc.coords.accuracy };
+                        $http.get(url, {params:params}).then(
+                            function (response) {
+                                _resolve(response.data);
+                            },
+                            function (response) {
+                                log('No city data received from server.');
+                                _reject();
+                            }
+                        );
+                    },
+                    function (error) {
+                        log('Browser geolocation API returned an error.');
+                        _reject();
+                    },
+                    {
+                        maximumAge: 0, // age of the location data in cache
+                        timeout: 10000, // request timeout
+                        enableHighAccuracy: true, // may give more accurate results
+                    });
+            } else {
+                log('Browser geolocation API not found.');
+                _reject();
+            }
+        });
     }])
 
     .factory('Categories', ['$q', '$http', function CategoriesFactory($q, $http){
@@ -56,70 +54,42 @@
             return post;
         }
 
+        // Load a single post by Id, either from cache or from server.
         function getItem (postid) {
-            // Load a single post by Id, either from cache or from server.
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (_resolve, _reject) {
                 $http.get('api/v1/posts/' + postid + '/').then(
-                    function (response) { resolve(_complete_fields(response.data)); },
-                    function (response) { reject(); }
+                    function (response) { _resolve(_complete_fields(response.data)); },
+                    function (response) { _reject(); }
                 );
             });
         }
 
-        function getList (city_url, cgroup, category, page) {
-            // Get a list of items by URL.
-            //
-            // city_url - URL fragment "country/region/city".
-            // cgroup - Category group slug.
-            // category - Category slug.
+        // Return the ready-made URL to load a Post list for the given values.
+        function getListUrl (city_url, cgroup, category, page) {
+            var url = '/api/v1/posts/';
+            var params = { city_url: city_url, cgroup: cgroup, category: category, dist: 50, page: page||'1' };
+            return url + '?' + Object.keys(params).map(function (k) { return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]) }).join('&');
+        }
 
-            // Check for cache.
-            var deferred = $q.defer();
-            var basepath = '/' + city_url + '/' + cgroup  + '/' + category;
-            var list_for = basepath + '?page=' + page;
-
-            // Check if the data in cache is for this item's URL.
-            if (list_cache_for && list_cache_for === list_for){
-                deferred.resolve(list_cache);
-            }
-
-            // Not cached, get from server.
-            var url = 'api/v1/posts/';
-            var params = { city_url:city_url, cgroup:cgroup, category:category, dist:50, page:page };
-
-            $http.get(url, {params:params}).then(
-                function (response) {
-                    list_cache_for = list_for;
-                    list_cache = response.data;
-
-                    // Fill in addition fields.
-                    if (list_cache.results)
-                        for (var i=0; i<list_cache.results.length; i++)
-                          list_cache.results[i] = _complete_fields(list_cache.results[i]);
-
-                    // Extract the actual "previous" and "next" page numbers.
-                    var result = (/\Wpage=(\d+)/g).exec(list_cache['previous']);
-                    list_cache['previous_page'] = result ? result[1] : null;
-                    list_cache['previous'] = result ? basepath + '?page=' + result[1] : null;
-                    if (page == 2) list_cache['previous'] = basepath // special case, only the path with no page number.
-                    var result = (/\Wpage=(\d+)/g).exec(list_cache['next']);
-                    list_cache['next_page'] = result ? result[1] : null;
-                    list_cache['next'] = result ? basepath + '?page=' + result[1] : null;
-
-                    // Resolve.
-                    deferred.resolve(list_cache);
-                },
-                function (response) {
-                    deferred.reject();
+        // Get a list of items by URL.
+        function getList (url) {
+            return new Promise(function (_resolve, _reject){
+                $http.get(url).then(
+                    function (response) {
+                        response.data.results.map(function (k) { k = _complete_fields(k) });
+                        _resolve(response.data);
+                    },
+                    function (response) {
+                        _reject();
+                    });
                 }
             );
-
-            return deferred.promise;
         }
 
         return {
             getItem: getItem,
             getList: getList,
+            getListUrl: getListUrl,
         };
     }])
 

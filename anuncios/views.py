@@ -7,6 +7,7 @@ from django.utils.translation import get_language
 from django.views.generic.base import View
 from rest_framework import generics
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -39,10 +40,12 @@ class CategoryDetail(APIView):
 
 class PostList(generics.ListCreateAPIView):
     """
-    Return a list of matching posts.
+    Return a list of matching posts. There are several filters that can be used
+    to limit the number of posts returned. All requests require a category and
+    category group defined.
 
-    There are several filters that can be used to limit the number of posts
-    returned.
+    GET cgroup, category:
+        Two string values, the "slug" of a category and it's parent.
 
     GET lat, lng, dist:
         Return only posts geolocated within "dist" km from the
@@ -57,12 +60,10 @@ class PostList(generics.ListCreateAPIView):
     GET City.id, dist:
         Same thing, but using the city's geoname_id.
 
-    However, all requests require a category and category group defined.
-
-    GET cgroup, category:
-        Two string values, the "slug" of a category and it's parent.
-
+    GET page:
+        For pagination.
     """
+    serializer_class = PostSerializer
 
     def get_queryset(self):
         city_id = self.request.query_params.get('city_id', None)
@@ -75,17 +76,20 @@ class PostList(generics.ListCreateAPIView):
         # Check for valid category.
         cgslug = self.request.query_params.get('cgroup', None)
         c_slug = self.request.query_params.get('category', None)
+
         try:
             category = [x for x in settings.ANUNCIOS['CATEGORIES']
                         if x['slug'] == c_slug][0]
         except IndexError:
             raise Http404
+
         # Check for valid parent (cgroup) category.
         try:
             cgroup = [x for x in settings.ANUNCIOS['CATEGORIES']
                       if x['slug'] == cgslug][0]
         except IndexError:
             raise Http404
+
         # Finally, check that cgroup is in fact the parent for category.
         if category['parent'] != cgroup['slug']:
             raise Http404
@@ -93,11 +97,10 @@ class PostList(generics.ListCreateAPIView):
         # Still here? Then create an initial Queryset, then filter further by
         # geolocation.
         queryset = Post.objects.filter(category=category['slug'])
-        print('queryset length --> {}'.format(queryset.count()))
+
         if city_url:
-            kwargs = {'url': city_url, 'language': lg, 'type': 3,
-                      'is_main': True}
-            city_id = get_object_or_404(AltName, **kwargs).geoname_id
+            kw = {'url': city_url, 'language': lg, 'type': 3, 'is_main': True}
+            city_id = get_object_or_404(AltName, **kw).geoname_id
         if city_id:
             city = get_object_or_404(City, pk=city_id)
             lat, lng = city.lat, city.lng
@@ -108,26 +111,20 @@ class PostList(generics.ListCreateAPIView):
                                        lat__lte=latmax, lng__lte=lngmax)
         return queryset
 
-    serializer_class = PostSerializer
-    paginate_by = 100
-    # permission_classes = (IsAdminUser,)
-    # pagination_class = LargeResultsSetPagination
-
     def create(self, request, *args, **kwargs):
         data = request.data['params']
         data['user'] = None
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
         pic_urls = []
         if hasattr(data, 'pics') and isinstance(data['pics'], list):
             for pic in data['pics']:
                 if pic:
                     p = Pic.create_from_base64(pic)
                     pic_urls.append(p.get_url())
-        # headers = self.get_success_headers(serializer.data)
-        # return Response(serializer.data + pic_urls,
-        #                status=status.HTTP_201_CREATED, headers=headers)
+
         return Response([], status=status.HTTP_303_SEE_OTHER,
                         headers={'Location': '/'})
 

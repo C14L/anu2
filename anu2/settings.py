@@ -72,9 +72,8 @@ DTRCITY_IMPORT_DIR = '/home/chris/dev-data/dtrcity'
 # REST framework settings
 # See http://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.PageNumberPagination',
-    'PAGINATE_BY': 100,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 5,
 }
 
 ANUNCIOS = {

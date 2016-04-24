@@ -10,8 +10,11 @@
         setTitle($scope.page['title']);
         setDescription($scope.page['description']);
 
+console.log('HomeController yo!')
+
         // Return a list of matches for the autocomplete input city finder.
         $scope.getMatches = function (searchText) {
+console.log('HomeController.getMatches.searchText: ' + searchText)
             if (searchText.length < 2) return [];
             var url = '/dtrcity/api/v1/autocomplete-crc.json';
             var params = { 'params': { 'q': searchText, 'fields':'crc url' }};
@@ -61,42 +64,55 @@
         });
     }])
     
-    .controller('CategoryController', ['$log', '$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function ($log, $scope, $q, $routeParams, Geoloc, Posts) {
+    .controller('CategoryController', ['$scope', '$routeParams', 'Geoloc', 'Posts', function ($scope, $routeParams, Geoloc, Posts) {
         var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
         var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
 
-        $scope.setAddFabStatus(fab_url);
-        $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
-        $scope.postsPromise = Posts.getList(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page||1).then(function (data) { $scope.posts = data; });
+        $scope.load = function (url) {
+            // Load the url and show the resulting page of Post items.
+            $scope.loading = true;
+            $scope.postsPromise = Posts.getList(url);
 
-        // When city data and category data promises resolve, show the page with all ads for this city.
-        $q.all([$scope.postsPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(_resolve, _reject);
+            // When city data and category data promises resolve, show the page with all ads for this city.
+            Promise.all([$scope.geolocPromise, $scope.postsPromise]).then(
+                function (dataList) {
+                    var geoloc = dataList[0];
+                    var posts = dataList[1];
 
-        function _resolve () {
-            $scope.category = $scope.getCategory($routeParams['category']);
+                    $scope.category = $scope.getCategory($routeParams['category']);
+                    $scope.posts.next = posts.next;
+                    $scope.posts.count = posts.count;
+                    $scope.posts.results.push.apply($scope.posts.results, posts.results.map(function (k, i) {
+                        k['url'] = url_path_join('/', geoloc['url'], $scope.category['parent']['slug'], $scope.category['slug'], k['id']);
+                        return k;
+                    }));
 
-            // If any results, prepare URL properties for each post.
-            if ($scope.posts)
-                for (var i=0; i<$scope.posts.length; i++)
-                    $scope.posts[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts[i]['id'];
+                    $scope.page['home_url'] = '/' + $scope.geoloc['url'];
+                    $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.count || 0]);
+                    $scope.page['h1'] = $scope.page['title'];
+                    $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
+                    setTitle($scope.page['title']);
+                    setDescription($scope.page['description']);
 
-            // Prepare page values.
-            $scope.page['home_url'] = '/' + $scope.geoloc['url'];
-            $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.length || 0]);
-            $scope.page['h1'] = $scope.page['title'];
-            $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
-            setTitle($scope.page['title']);
-            setDescription($scope.page['description']);
+                    $scope.loading = false;
+                    $scope.$apply();
+                },
+                function _reject () { }
+            );
         }
 
-        function _reject () {}
+        $scope.posts = { results: [] };
+        $scope.setAddFabStatus(fab_url);
+        $scope.geolocPromise = Geoloc.getByUrl().then(function (data) { return $scope.geoloc = data; });
+        $scope.load(Posts.getListUrl(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page || 1));
     }])
     
-    .controller('CategoryGroupController', ['$scope', '$q', '$routeParams', 'Geoloc', function ($scope, $q, $routeParams, Geoloc) {
-        $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
+    .controller('CategoryGroupController', ['$scope', '$routeParams', 'Geoloc', function ($scope, $routeParams, Geoloc) {
+        $scope.geolocPromise = Geoloc.getByUrl();
 
-        $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(
-            function () {
+        Promise.all([$scope.geolocPromise, $scope.categoriesPromise]).then(
+            function (dataList) {
+                $scope.geoloc = dataList[0];
                 $scope.page['home_url'] = '/' + $scope.geoloc['url'];
                 $scope.page['title'] = tr("", []);
                 $scope.page['h1'] = $scope.page['title'];
@@ -183,10 +199,8 @@
     
     .controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function ($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc) {
         $scope.addFabPath = '';  // ???
+        $scope.toggleSidenav = function (menuId) { $mdSidenav(menuId).toggle(); }
 
-        $scope.toggleSidenav = function (menuId) {
-            $mdSidenav(menuId).toggle();
-        }
         $scope.sidebarList = [
             { title: "Some title", description: "And the description for the some title.", done: true },
             { title: "Another one", description: "Another description for another title.", done: false }];

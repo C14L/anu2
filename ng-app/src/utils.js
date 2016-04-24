@@ -178,7 +178,12 @@ function log( msg ){
     }
 }
 
-
+function url_path_join () {
+    // Combine a list of strings into a URL string.
+    var re1 = /^\s+|\s+$/g;
+    var re2 = /\/+/g;
+    return Array.prototype.slice.call(arguments).map(function (k) { return String(k).replace(re1, '') }).join('/').replace(re2, '/');
+}
 
 // used for confirmed flags, mainly "match" and "friends" mutual flags.
 function sort_by_confirmed_filter( a, b ){
