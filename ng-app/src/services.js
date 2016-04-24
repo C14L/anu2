@@ -134,9 +134,7 @@
 
             if (typeof(item_url) === 'undefined') {
                 if ($routeParams.country && $routeParams.region && $routeParams.city) {
-                    log($routeParams.country);
-                    log($routeParams.region);
-                    log($routeParams.city);
+                    // log($routeParams.country, $routeParams.region, $routeParams.city);
                     var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
                 }
             }

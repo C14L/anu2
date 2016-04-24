@@ -61,13 +61,14 @@
         });
     }])
     
-    .controller('CategoryController', ['$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function ($scope, $q, $routeParams, Geoloc, Posts) {
+    .controller('CategoryController', ['$log', '$scope', '$q', '$routeParams', 'Geoloc', 'Posts', function ($log, $scope, $q, $routeParams, Geoloc, Posts) {
         var item_url = $routeParams.country + '/' + $routeParams.region + '/' + $routeParams.city;
         var fab_url = item_url  + '/' + $routeParams.cgroup  + '/' + $routeParams.category;
 
         $scope.setAddFabStatus(fab_url);
         $scope.geolocPromise = Geoloc.getByUrl().then(function(data){ $scope.geoloc = data });
         $scope.postsPromise = Posts.getList(item_url, $routeParams.cgroup, $routeParams.category, $routeParams.page||1).then(function (data) { $scope.posts = data; });
+
         // When city data and category data promises resolve, show the page with all ads for this city.
         $q.all([$scope.postsPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(_resolve, _reject);
 
@@ -75,13 +76,13 @@
             $scope.category = $scope.getCategory($routeParams['category']);
 
             // If any results, prepare URL properties for each post.
-            if ($scope.posts.results)
-                for (var i=0; i<$scope.posts.results.length; i++)
-                    $scope.posts.results[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts.results[i]['id'];
+            if ($scope.posts)
+                for (var i=0; i<$scope.posts.length; i++)
+                    $scope.posts[i]['url'] = '/' + $scope.geoloc['url'] + '/' + $scope.category['parent']['slug'] + '/' + $scope.category['slug'] + '/' + $scope.posts[i]['id'];
 
             // Prepare page values.
             $scope.page['home_url'] = '/' + $scope.geoloc['url'];
-            $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.count||0]);
+            $scope.page['title'] = tr("{2} > {0} > {1} > {3} Clasificados", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['city_name'], $scope.posts.length || 0]);
             $scope.page['h1'] = $scope.page['title'];
             $scope.page['description'] = tr("{0} de {1} en {2} y alrrededores. Publica y encuentra anuncions clasificados sobre {1} para {3} en esta seccion.", [$scope.category['parent']['title'], $scope.category['title'], $scope.geoloc['crc'], $scope.geoloc['city_name']]);
             setTitle($scope.page['title']);

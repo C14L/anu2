@@ -177,7 +177,8 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
       <div ng-if="!posts" layout="row" layout-sm="column" layout-align="space-around">
         <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
       </div>
-      <div ng-if="posts" class="post-item" ng-class="{'expired': post.expired}" ng-repeat="post in posts.results track by post.id">
+      <div ng-if="posts" class="post-item" ng-class="{'expired': post.expired}"
+           ng-repeat="post in posts track by post.id">
         <h3 class="post-title"><a href="#" ng-href="{{post.url}}">{{post.title}}</a></h3>
         <p>
           <span>{{tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name])}}</span> - 
