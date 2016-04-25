@@ -10,11 +10,8 @@
         setTitle($scope.page['title']);
         setDescription($scope.page['description']);
 
-console.log('HomeController yo!')
-
         // Return a list of matches for the autocomplete input city finder.
         $scope.getMatches = function (searchText) {
-console.log('HomeController.getMatches.searchText: ' + searchText)
             if (searchText.length < 2) return [];
             var url = '/dtrcity/api/v1/autocomplete-crc.json';
             var params = { 'params': { 'q': searchText, 'fields':'crc url' }};
@@ -198,8 +195,8 @@ console.log('HomeController.getMatches.searchText: ' + searchText)
     }])
     
     .controller('AppController', ['$scope', '$mdSidenav', '$mdDialog', '$routeParams', 'Geoloc', function ($scope, $mdSidenav, $mdDialog, $routeParams, Geoloc) {
-        $scope.addFabPath = '';  // ???
-        $scope.toggleSidenav = function (menuId) { $mdSidenav(menuId).toggle(); }
+        $scope.isSidenavOpen = false;
+        $scope.toggleSidenav = function (menuId) { $mdSidenav(menuId).toggle() };
 
         $scope.sidebarList = [
             { title: "Some title", description: "And the description for the some title.", done: true },
@@ -214,7 +211,7 @@ console.log('HomeController.getMatches.searchText: ' + searchText)
                 .ariaLabel(tr('Selecciona una categoria'))
                 .ok(tr('Cerrar'))
                 .targetEvent(ev));
-        }
+        };
     }]);
 
 })();

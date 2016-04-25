@@ -8,11 +8,10 @@
     <link rel="canonical" href="">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.9.4/angular-material.min.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.7/angular-material.min.css">
     <style>
 
       .md-fab.md-fab-bottom-right { position: fixed !important; top: auto; right: 20px; bottom: 20px; left: auto;  }
-      .md-fab md-icon { margin-top: 4px !important; }
 
       .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
 
@@ -29,7 +28,6 @@
       .home-view .category-list-view span { color: #909090; }
       .home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
       .home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
-      .home-view .loading-geoloc md-progress-circular { background-color: green}
       .home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
 
       .postitem-view {  }
@@ -66,11 +64,13 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     </script>
   </head>
   <body ng-controller="AppController" layout="column" layout-fill>
-
     <md-toolbar layout="row">
       <div class="md-toolbar-tools">
-        <md-button ng-click="toggleSidenav('left')" hide-gt-xs class="md-icon-button">
+        <md-button ng-if="!isSidenavOpen" ng-click="toggleSidenav('left')" hide-gt-xl class="md-icon-button">
           <md-icon>menu</md-icon>
+        </md-button>
+        <md-button ng-if="isSidenavOpen" ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
+          <md-icon>close</md-icon>
         </md-button>
         <h1><a href="{{ page.home_url }}">{{page.h1}}</a></h1>
       </div>
@@ -80,14 +80,14 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
 
     <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{ addFabStatus }}/add" class="md-fab md-fab-bottom-right" aria-label="{{ tr('agregar') }}"><md-icon>add</md-icon></md-button>
 
-    <div layout="row" flex>
-      <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
-        <div hide-gt-md class="md-toolbar-tools">
+    <md-content layout="row" flex>
+      <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-xl')" md-is-open="isSidenavOpen">
+        <!-- <div hide-gt-md class="md-toolbar-tools">
           <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
             <md-icon>close</md-icon>
           </md-button>
           <h1>{{ site.title }}</h1>
-        </div>
+        </div> -->
         <md-list>
           <md-list-item class="md-2-line" ng-repeat="item in sidebarList">
             <md-checkbox ng-model="item.done"></md-checkbox>
@@ -99,11 +99,10 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </md-list>
       </md-sidenav>
 
-      <div id="content" layout="column" flex class="md-padding" ng-view="main">
+      <div id="content" class="md-padding" layout="column" flex ng-view="main">
         Loading...
       </div>
-    </div>
-
+    </md-content>
   </body>
 
   <script type="text/ng-template" id="home.html">
@@ -119,7 +118,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
       </div>
 
       <div ng-show="isManualCityFinder">
-        <div class="manual-geoloc">
+        <form class="manual-geoloc">
           <md-autocomplete flex required
               md-selected-item-change="locationSelected(selectedItem)"
               md-selected-item="selectedItem"
@@ -133,11 +132,11 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
               md-autofocus="1"
               md-autoselect="1"
               md-select-on-match="1"
-              md-floating-label="{{ tr('Escribe unos letras del nombre de tu ciudad...') }}">
+              placeholder="{{ tr('Escribe unos letras del nombre de tu ciudad...') }}">
             <md-item-template><span md-highlight-text="searchText">{{ item.crc }}</span></md-item-template>
             <md-not-found><span>{{ tr('No se encontró ninguna ciudad con este nombre.') }}</span></md-not-found>
           </md-autocomplete>
-        </div>
+        </form>
       </div>
 
       <div class="category-list-view">
