@@ -1,4 +1,4 @@
-angular.module('anu2app', ['ngRoute', 'ngMaterial', 'imageupload'])
+angular.module('anu2app', ['ngRoute', 'ngMaterial', 'ng-showdown', 'imageupload'])
 
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
     $locationProvider.html5Mode(true);
@@ -20,23 +20,20 @@ angular.module('anu2app', ['ngRoute', 'ngMaterial', 'imageupload'])
         templateUrl: 'category.html'
     })
     .when( '/:country/:region/:city/:cgroup/:category/add', {
-        controller: 'AddPostItemController',
-        templateUrl: 'addpostitem.html'
+        controller: 'PostCreateController',
+        templateUrl: 'post-create.html'
     })
     .when( '/:country/:region/:city/:cgroup/:category/:postid', {
-        controller: 'PostItemController',
-        templateUrl: 'postitem.html'
+        controller: 'PostDetailController',
+        templateUrl: 'post-detail.html'
     })
     .otherwise({ redirectTo: '/' });
 }])
 
 .run(['$rootScope', '$window', '$location', '$http', function($rootScope, $window, $location, $http){
-
-  $rootScope.addFabStatus = 1; // 0=hide; 1=show but disallow add; [String]=show and allow add. URL of href.
-  $rootScope.path = $location.path();
+  $rootScope.addFabStatus = true;
   $rootScope.categories = [];
   $rootScope.categoryTree = {};
-
   $rootScope.site = {
     'title': 'Anuncios1.com'
   };
@@ -79,9 +76,7 @@ angular.module('anu2app', ['ngRoute', 'ngMaterial', 'imageupload'])
 
   // Do stuff each time the route successfully changes.
   $rootScope.$on('$routeChangeSuccess', function(event) {
-      // Reset FAB "add" button to default "disalow add" (1) state.
-      $rootScope.addFabStatus = 1;
-      // Push URL changes to Google Analytics
+      $rootScope.path = $location.path();
       //$window.ga('send', 'pageview', { page: $location.path() });
   });
 

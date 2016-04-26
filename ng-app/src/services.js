@@ -57,10 +57,15 @@
         // Load a single post by Id, either from cache or from server.
         function getItem (postid) {
             return new Promise(function (_resolve, _reject) {
-                $http.get('api/v1/posts/' + postid + '/').then(
-                    function (response) { _resolve(_complete_fields(response.data)); },
-                    function (response) { _reject(); }
-                );
+                if (postid) {
+                    $http.get('api/v1/posts/' + postid + '/').then(
+                        function (response) { _resolve(_complete_fields(response.data)); },
+                        function (response) { _reject(); }
+                    );
+                } else {
+                    _reject(); // no postid
+                    console.log('No postid received in Posts.getItem()')
+                }
             });
         }
 

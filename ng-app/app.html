@@ -15,37 +15,30 @@
 
       .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
 
-      .category-list-view a { color: inherit; text-decoration: none; }
-      .category-list-view a:hover { color: #0000FF; text-decoration: underline; }
+      .category-list-view { }
+      .category-list-view .list { display: flex; flex-flow: row wrap; }
+      .category-list-view .item { display: flex; flex-direction: column; min-width: 320px; max-width: 450px; flex: 0 0; margin: 8px; }
+      .category-list-view .inner-item { position: relative; padding: 16px; color: inherit; text-decoration: none; }
+      .category-list-view .inner-item.title { font-size: 1.75em; background-color: #3F51B5; color: white; }
+      .category-list-view .inner-item:not(.title) { border-bottom: 1px solid rgba(0,0,0,0.12); }
 
       .item-list-view .post-item a { text-decoration: none; }
       .item-list-view .post-item.expired { color: #C0C0C0; }
       .item-list-view .post-item.expired a { color: #C0C0C0; }
       .item-list-view .post-item a:hover { text-decoration: underline; }
 
-      .home-view .category-list-view,
-      .home-view .category-list-view h2,
-      .home-view .category-list-view span { color: #909090; }
-      .home-view .manual-geoloc { padding: 8px 32px 32px 32px; background-color: #e3e3e3; }
-      .home-view .loading-geoloc { padding: 32px; background-color: #e3e3e3; }
-      .home-view .loading-geoloc .text { margin-bottom: 16px; text-align: center; }
+      .home-view .manual-geoloc { padding: 32px; background-color: #e3e3e3; }
+      .home-view .manual-geoloc input { font-size: 2em;  }
 
-      .postitem-view {  }
-      .postitem-view a { text-decoration: none; }
-      .postitem-view.expired,
-      .postitem-view.expired a { color: #C0C0C0; }
+      .post-detail-view a { text-decoration: none; }
+      .post-detail-view.expired,
+      .post-detail-view.expired a { color: #C0C0C0; }
 
-      .add-post-view .todolist { list-style: none; margin: 0; padding: 0; background-color: #E3E3E3; }
-      .add-post-view .todolist li { display: inline-block; margin: 0; padding: 8px; color: #909090; }
-      .add-post-view .todolist li.active { color: #000000; }
-      .add-post-view .formfields { max-width: 500px; }
-      .add-post-view .formfields md-input-container { clear: right; }
-
-      .add-post-view .piclist { display: block; margin: 16px 0; }
-      .add-post-view .piclist .pic { display: inline-block; width: 150px; height: 150px; background: #909090 url(static/icons/images.svg) center center no-repeat; background-size: cover; border: 4px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); position: relative; margin: 4px; }
-      .add-post-view .piclist .pic:before { content: ' '; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,0.7); }
+      .add-post-view .formfields { width: 400px; }
+      .add-post-view .piclist { display: flex; width: 100%; height: 100px; background: orange; }
+      .add-post-view .piclist .pic { width: 100px; height: 100px; background: gray center center no-repeat; background-size: cover; }
       .add-post-view .piclist .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
-      .add-post-view .piclist .pic img { position: absolute; top: 0; left: 0; background: #F3F3F3; width: inherit; height: inherit; margin: 0; padding: 0; outline: 0; border: 0; }
+      .add-post-view .piclist .pic img { width: inherit; height: inherit; border: 0; }
       .add-post-view .piclist .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
       .add-post-view .piclist .pic .add-btn,
       .add-post-view .piclist .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
@@ -72,22 +65,12 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         <md-button ng-if="isSidenavOpen" ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
           <md-icon>close</md-icon>
         </md-button>
-        <h1><a href="{{ page.home_url }}">{{page.h1}}</a></h1>
+        <h1><a href="{{ page.home_url }}">{{ page.h1 }}</a></h1>
       </div>
     </md-toolbar>
 
-    <md-button ng-if="addFabStatus==1" ng-click="addFabInfoDialog($event)" class="md-fab md-fab-bottom-right" aria-label="{{ tr('agregar') }}"><md-icon>add</md-icon></md-button>
-
-    <md-button ng-if="addFabStatus!=0 && addFabStatus!=1" ng-href="{{ addFabStatus }}/add" class="md-fab md-fab-bottom-right" aria-label="{{ tr('agregar') }}"><md-icon>add</md-icon></md-button>
-
     <md-content layout="row" flex>
       <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-xl')" md-is-open="isSidenavOpen">
-        <!-- <div hide-gt-md class="md-toolbar-tools">
-          <md-button ng-click="toggleSidenav('left')" hide-gt-md class="md-icon-button">
-            <md-icon>close</md-icon>
-          </md-button>
-          <h1>{{ site.title }}</h1>
-        </div> -->
         <md-list>
           <md-list-item class="md-2-line" ng-repeat="item in sidebarList">
             <md-checkbox ng-model="item.done"></md-checkbox>
@@ -99,7 +82,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </md-list>
       </md-sidenav>
 
-      <div id="content" class="md-padding" layout="column" flex ng-view="main">
+      <div id="content" layout="column" flex ng-view="main">
         Loading...
       </div>
     </md-content>
@@ -138,44 +121,34 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
           </md-autocomplete>
         </form>
       </div>
-
-      <div class="category-list-view">
-        <div ng-repeat="(slug, root) in categoryTree track by slug">
-          <h2 ng-bind="root.title"></h2>
-          <div ng-repeat="child in root.children track by child.slug">
-            <span ng-href="{{ loc.url }}/{{ root.slug }}/{{ child.slug }}" ng-bind="child.title"></span>
-          </div>
-        </div>
-      </div>
     </div>
   </script>
 
   <script type="text/ng-template" id="location.html">
-    <div class="location-view category-list-view">
-      <h1>{{tr('Clasificados para {0}', [geoloc.city_name])}}</h1>
-      <p>{{page.description}}</p>
-      <div ng-repeat="(slug, root) in categoryTree track by slug">
-        <h2><a ng-href="{{geoloc.url}}/{{root.slug}}" title="{{tr('Anuncions clasificados de {0} de {1}', [root.title, geoloc.city_name])}}">{{tr('{0} en {1}', [root.title, geoloc.city_name])}}</a></h2>
-        <div ng-repeat="child in root.children track by child.slug">
-          <a ng-href="{{geoloc.url}}/{{root.slug}}/{{child.slug}}" title="{{tr('Anuncions clasificados de {0} de {1}', [child.title, geoloc.city_name])}}">{{child.title}}</a>
+    <div class="location-view category-list-view md-padding">
+      <p>{{ page.description }}</p>
+      <div class="list">
+        <div class="item inner-list" ng-repeat="(slug, root) in categoryTree track by slug" md-whiteframe="5">
+          <a md-ink-ripple="true" class="inner-item title" ng-href="{{ geoloc.url }}/{{ root.slug }}" title="{{ tr('Anuncions clasificados de {0} de {1}', [root.title, geoloc.city_name]) }}">{{ tr('{0} en {1}', [root.title, geoloc.city_name]) }}</a>
+          <a md-ink-ripple="true" class="inner-item" ng-repeat="child in root.children track by child.slug" ng-href="{{ geoloc.url }}/{{ root.slug }}/{{ child.slug }}" title="{{ tr('Anuncions clasificados de {0} de {1}', [child.title, geoloc.city_name]) }}">{{ child.title }}</a>
         </div>
       </div>
     </div>
   </script>
 
   <script type="text/ng-template" id="category.html">
-    <div class="category-view item-list-view">
+    <div class="category-view item-list-view md-padding">
       <h1 ng-bind="category.title"></h1>
       <p ng-bind="page.description"></p>
 
       <div ng-if="posts.results" class="post-item" ng-class="{'expired': post.expired}" ng-repeat="post in posts.results track by post.id">
         <h3 class="post-title"><a href="#" ng-href="{{post.url}}">{{post.title}}</a></h3>
         <p>
-          <span>{{tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name])}}</span> -
-          <span>{{tr('publicado:')}} {{post.publish}}</span> -
-          <span>{{tr('valido hasta:')}} {{post.expires}}</span> -
-          <a ng-if="!post.expired" ng-href="{{post.url}}">{{tr('ver clasificado')}}</a>
-          <a ng-if="post.expired" ng-href="{{post.url}}">{{tr('clasificado expirado')}}</a>
+          <span>{{ tr('categoria: {0} en {1}, {2}', [post.category, geoloc.city_name, geoloc.country_name]) }}</span> -
+          <span>{{ tr('publicado:') }} {{ post.publish }}</span> -
+          <span>{{ tr('valido hasta:') }} {{ post.expires }}</span> -
+          <a ng-if="!post.expired" ng-href="{{ post.url }}">{{ tr('ver clasificado') }}</a>
+          <a ng-if="post.expired" ng-href="{{ post.url }}">{{ tr('clasificado expirado') }}</a>
         </p>
       </div>
 
@@ -189,13 +162,22 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </md-button>
       </div>
     </div>
+
+    <md-button ng-if="fabUrl" ng-href="{{ fabUrl }}" class="md-fab md-fab-bottom-right">
+      <md-icon>add</md-icon>
+    </md-button>
   </script>
 
-  <script type="text/ng-template" id="postitem.html">
-    <div class="postitem-view" ng-class="{'expired': post.expired}">
+  <script type="text/ng-template" id="post-detail.html">
+    <div class="post-detail-view md-padding" ng-class="{'expired': post.expired}">
       <h1 ng-bind="post.title"></h1>
-      <div ng-bind-html="post.text_html"></div>
+      <div markdown-to-html="post.text"></div>
+      <!-- <dXXXiv ng-biXXXnd-html="post.teXXXxt_html"></dXXXiv> -->
     </div>
+
+    <md-button ng-if="fabUrl" ng-href="{{ fabUrl }}" class="md-fab md-fab-bottom-right">
+      <md-icon>add</md-icon>
+    </md-button>
   </script>
 
   <script type="text/ng-template" id="categorygroup.html">
@@ -204,79 +186,116 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     </div>
   </script>
 
-  <script type="text/ng-template" id="addpostitem.html">
-      <form name="addpostForm" class="add-post-view">
-        <!-- <ol class="todolist">
-          <li class="active">{{tr('Llenar')}}</li>
-          <li>{{tr('Confirmar')}}</li>
-          <li>{{tr('¡Ya está!')}}</li>
-        </ol> -->
-        <div class="formfields">
-          <p>
-            <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Ciudad:')"></span>
-            <span style="display:block" ng-bind="geoloc.crc"></span>
-          </p>
-          <p>
-            <span style="color:#B0B0B0;font-size:small;display:block" ng-bind="tr('Categoría:')"></span>
-            <span style="display:block" ng-bind="category.title"></span>
-          </p>
-          <div class="piclist">
-            <div class="pic" ng-repeat="pic in addpost.pics track by $index">
-              <input id="inputImage{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
-              <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait">
-                <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
-              </div>
-              <img src="" ng-if="addpost.pics[$index].resized" ng-src="{{ addpost.pics[$index].resized.dataURL }}">
-              <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove">
-                <md-icon ng-click="addpost.pics[$index].removeImage()">trash-a</md-icon>
-              </md-button>
+  <script type="text/ng-template" id="post-create.html">
+    <form name="addpostForm md-padding" class="add-post-view">
+      <md-content class="formfields" layout="column">
+
+        <div class="piclist">
+          <div class="pic" ng-repeat="pic in addpost.pics track by $index">
+            <input id="inputImage{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
+            <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait">
+              <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
             </div>
-          </div>
-          <md-input-container>
-            <label>Email:</label>
-            <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
-            <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
-              <div ng-message="required">This is required!</div>
-              <div ng-message="md-maxlength">That is too long!</div>
-              <div ng-message="minlength">That is too short!</div>
-            </div>
-          </md-input-container>
-          <md-input-container>
-            <label>Título:</label>
-            <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
-            <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
-              <div ng-message="required">This is required!</div>
-              <div ng-message="md-maxlength">That is too long!</div>
-              <div ng-message="minlength">That is too short!</div>
-            </div>
-          </md-input-container>
-          <md-input-container>
-            <label>Texto:</label>
-            <textarea name="addpostText" ng-model="addpost.text" md-maxlength="10000"></textarea></p>
-            <div ng-messages="addpostForm.addpostText.$error" ng-show="addpostForm.addpostText.$dirty">
-              <div ng-message="required">This is required!</div>
-              <div ng-message="md-maxlength">That is too long!</div>
-              <div ng-message="minlength">That is too short!</div>
-            </div>
-          </md-input-container>
-          <md-input-container>
-            <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
-              <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
-            </md-select>
-          </md-input-container>
-          <div class="md-actions" layout="row">
-            <span flex></span>
-            <md-button ng-click="addpostSubmit()" class="md-raised md-primary">
-              Publicar
+            <img style="background-color: gray" src="" ng-if="addpost.pics[$index].resized" ng-src="{{ addpost.pics[$index].resized.dataURL }}">
+            <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove">
+              <md-icon ng-click="addpost.pics[$index].removeImage()">trash-a</md-icon>
             </md-button>
           </div>
         </div>
-      </form>
+
+        <md-input-container>
+          <label>Email:</label>
+          <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
+          <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
+            <div ng-message="required">This is required!</div>
+            <div ng-message="md-maxlength">That is too long!</div>
+            <div ng-message="minlength">That is too short!</div>
+          </div>
+        </md-input-container>
+        <md-input-container>
+          <label>Título:</label>
+          <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
+          <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
+            <div ng-message="required">This is required!</div>
+            <div ng-message="md-maxlength">That is too long!</div>
+            <div ng-message="minlength">That is too short!</div>
+          </div>
+        </md-input-container>
+        <md-input-container>
+          <label>Texto:</label>
+          <textarea name="addpostText" ng-model="addpost.text" md-maxlength="10000"></textarea></p>
+          <div ng-messages="addpostForm.addpostText.$error" ng-show="addpostForm.addpostText.$dirty">
+            <div ng-message="required">This is required!</div>
+            <div ng-message="md-maxlength">That is too long!</div>
+            <div ng-message="minlength">That is too short!</div>
+          </div>
+        </md-input-container>
+        <md-input-container>
+          <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
+            <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
+          </md-select>
+        </md-input-container>
+        <div class="md-actions" layout="row">
+          <span flex></span>
+          <md-button ng-click="addpostSubmit()" class="md-raised md-primary">
+            Publicar
+          </md-button>
+        </div>
+      </md-content>
+    </form>
   </script>
+
+  <script type="text/ng-template" id="post-detail-dialog.html">
+    <md-dialog aria-label="{{ post.title }}" class="post-detail-view" ng-class="{'expired': post.expired}">
+      <form>
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2>{{ post.title }}</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="cancel()">
+              <md-icon>close</md-icon>
+            </md-button>
+          </div>
+        </md-toolbar>
+        <md-dialog-content style="max-width:800px;max-height:810px; ">
+          <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab label="one">
+              <md-content class="md-padding">
+                <h1 class="md-display-2">Anuncio</h1>
+                <div markdown-to-html="post.text"></div>
+              </md-content>
+            </md-tab>
+            <md-tab label="two">
+              <md-content class="md-padding">
+                <h1 class="md-display-2">Contacto</h1>
+                <p>...</p>
+              </md-content>
+            </md-tab>
+          </md-tabs>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+          <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+            More on Wikipedia
+          </md-button>
+          <span flex></span>
+          <md-button ng-click="answer('not useful')" >
+            Not Useful
+          </md-button>
+          <md-button ng-click="answer('useful')" style="margin-right:20px;" >
+            Useful
+          </md-button>
+        </md-dialog-actions>
+      </form>
+    </md-dialog>
+  </script>
+
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-route.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-animate.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-aria.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-sanitize.min.js"></script><!-- required by markdown -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.3.0/showdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ng-showdown/1.1.0/ng-showdown.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.7/angular-material.min.js"></script>
   <script src="static/libs/angularjs-imageupload-directive/public/javascripts/imageupload.js"></script>
   <script src="static/src/utils.js"></script>
