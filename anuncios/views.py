@@ -64,6 +64,7 @@ class PostList(generics.ListCreateAPIView):
         For pagination.
     """
     serializer_class = PostSerializer
+    page_size = 10
 
     def get_queryset(self):
         city_id = self.request.query_params.get('city_id', None)
@@ -71,6 +72,7 @@ class PostList(generics.ListCreateAPIView):
         lat = self.request.query_params.get('lat', None)
         lng = self.request.query_params.get('lng', None)
         dist = int(self.request.query_params.get('dist', 50))
+        limit = int(self.request.query_params.get('limit', 100))
         lg = get_language()
 
         # Check for valid category.
@@ -146,7 +148,7 @@ class UserList(generics.ListCreateAPIView):
 
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
-    paginate_by = 10
+    page_size = 10
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):

@@ -44,23 +44,29 @@
                 log('No geolocation from API, switch to manual!')
                 $scope.isSearchingLocation = false;
                 $scope.isManualCityFinder = true;
+                $scope.$apply();
             }
         );
     }])
     
-    .controller('LocationController', ['$scope', '$q', '$routeParams', 'Geoloc', function LocationController ($scope, $q, $routeParams, Geoloc) {
-        $scope.geolocPromise = Geoloc.getByUrl().then(function (data) { $scope.geoloc = data });
+    .controller('LocationController', ['$scope', '$routeParams', 'Geoloc', function LocationController ($scope, $routeParams, Geoloc) {
+        $scope.geolocPromise = Geoloc.getByUrl();
 
-        $q.all([$scope.geolocPromise, $scope.categoriesPromise]).then(function () {
-            $scope.addFabStatus = false;
-            $scope.category = $scope.getCategory($routeParams['category']);
-            $scope.page['home_url'] = '/';
-            $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.geoloc['crc']]);
-            $scope.page['h1'] = $scope.page['title'];
-            $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.geoloc['crc'], $scope.geoloc['name'], $scope.geoloc['country_name']]);
-            setTitle($scope.page['title']);
-            setDescription($scope.page['description']);
-        });
+        Promise.all([$scope.geolocPromise, $scope.categoriesPromise]).then(
+            function (dataList) {
+                $scope.geoloc = dataList[0];
+                $scope.category = $scope.getCategory($routeParams['category']);
+
+                $scope.page['home_url'] = '/';
+                $scope.page['title'] = tr("Anuncios Clasificados en {0}", [$scope.geoloc['crc']]);
+                $scope.page['h1'] = $scope.page['title'];
+                $scope.page['description'] = tr("Todos los anuncios clasificados para {0} y alrrededores, encuentra las mejores ofertas para {1} y artículos raros mas interesantes de {2}.", [$scope.geoloc['crc'], $scope.geoloc['name'], $scope.geoloc['country_name']]);
+                setTitle($scope.page['title']);
+                setDescription($scope.page['description']);
+
+                $scope.$apply();
+            }
+        );
     }])
 
     .controller('CategoryController', ['$scope', '$routeParams', 'Geoloc', 'Posts', function CategoryController ($scope, $routeParams, Geoloc, Posts) {
@@ -131,7 +137,7 @@
                 $scope.post = dataList[0];
                 $scope.geoloc = dataList[1];
                 $scope.category = $scope.getCategory($routeParams['category']);
-
+console.log($scope.post);
                 $scope.page['home_url'] = url_path_join($scope.geoloc['url'], $routeParams.cgroup, $routeParams.category);
                 $scope.page['title'] = $scope.post['title'] + ' (' + $scope.geoloc['crc'] + ')';
                 $scope.page['h1'] = $scope.post['title'];
@@ -179,17 +185,21 @@
     }])
 
     .controller('PostCreateController', ['$rootScope', '$scope', '$http', '$routeParams', 'Geoloc', 'Posts', function PostCreateController ($rootScope, $scope, $http, $routeParams, Geoloc, Posts) {
-        $rootScope.setAddFabStatus(0); // 0=hide fab
         $scope.geolocPromise = Geoloc.getByUrl();
-        $scope.postPromise = Posts.getItem($routeParams.postid);
+        //$scope.postPromise = Posts.getItem($routeParams.postid);
 
-        Promise.all([$scope.postPromise, $scope.geolocPromise, $scope.categoriesPromise]).then(
+        Promise.all([$scope.geolocPromise]).then(
             function (dataList) {
-                $scope.post = dataList[0];
-                $scope.geoloc = dataList[1];
+                $scope.geoloc = dataList[0];
                 $scope.category = $scope.getCategory($routeParams['category']);
 
-                $scope.expiresDeltaOptions = [["7", "1 semana"], ["30", "1 mes"], ["91", "3 meses"], ["365", "1 año"], ["1095", "3 años"]];
+                $scope.expiresDeltaOptions = [
+                    {days: 7, title: "1 semana"},
+                    {days: 30, title: "1 mes"},
+                    {days: 91, title: "3 meses"},
+                    {days: 365, title: "1 año"},
+                    {days: 1095, title: "3 años"}];
+
                 $scope.page['home_url'] = '/' + $scope.geoloc['url'] + '/' + $routeParams.cgroup  + '/' +  $routeParams.category;
                 $scope.page['title'] = tr('Agregar nuevo anuncio');
                 $scope.page['h1'] = $scope.page['title'];

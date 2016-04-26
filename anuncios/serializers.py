@@ -9,6 +9,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
           'id', 'user', 'category', 'lat', 'lng', 'title', 'text',
+          'pic_1', 'pic_2', 'pic_3', 'pic_4',
           'created', 'updated', 'publish', 'expires',
           'count_views', 'count_updates', 'count_messages',
           'is_nsfw', 'is_public', 'is_delete'

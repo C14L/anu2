@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.7/angular-material.min.css">
     <style>
-
+      [ng-cloak] { display: none; }
+      .init-loading { padding: 16px; }
       .md-fab.md-fab-bottom-right { position: fixed !important; top: auto; right: 20px; bottom: 20px; left: auto;  }
 
       .md-toolbar-tools h1 { font-size: inherit; font-weight: inherit; margin: inherit; }
@@ -31,17 +32,17 @@
       .home-view .manual-geoloc input { font-size: 2em;  }
 
       .post-detail-view a { text-decoration: none; }
-      .post-detail-view.expired,
-      .post-detail-view.expired a { color: #C0C0C0; }
+      .post-detail-view .pics { display: flex; flex-flow: row nowrap; justify-content: flex-start; }
+      .post-detail-view .pics .pic { margin: 8px; width: 200px; height: 200px; background: gray center center no-repeat; background-size: cover; }
+      .post-detail-view.expired { opacity: 0.5; }
 
-      .add-post-view .formfields { width: 400px; }
-      .add-post-view .piclist { display: flex; width: 100%; height: 100px; background: orange; }
-      .add-post-view .piclist .pic { width: 100px; height: 100px; background: gray center center no-repeat; background-size: cover; }
-      .add-post-view .piclist .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
-      .add-post-view .piclist .pic img { width: inherit; height: inherit; border: 0; }
-      .add-post-view .piclist .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
-      .add-post-view .piclist .pic .add-btn,
-      .add-post-view .piclist .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
+      .add-post-view .formfields { }
+      .add-post-view .pics { display: flex; flex-flow: row nowrap; justify-content: flex-start; }
+      .add-post-view .pics .pic { margin: 8px; width: 200px; height: 200px; background: gray center center no-repeat; background-size: cover; }
+      .add-post-view .pics .pic input[type="file"] { z-index: 10; display: block; width: inherit; height: inherit; opacity: 0; cursor: pointer; }
+      .add-post-view .pics .pic .wait { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(255,255,255,1); color: #000000; font-size: small; }
+      .add-post-view .pics .pic .add-btn,
+      .add-post-view .pics .pic .remove-btn { position: absolute; bottom: 8px; right: 8px; }
 
     </style>
     <script>
@@ -58,7 +59,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
   </head>
   <body ng-controller="AppController" layout="column" layout-fill>
     <md-toolbar layout="row">
-      <div class="md-toolbar-tools">
+      <div class="md-toolbar-tools" ng-cloak>
         <md-button ng-if="!isSidenavOpen" ng-click="toggleSidenav('left')" hide-gt-xl class="md-icon-button">
           <md-icon>menu</md-icon>
         </md-button>
@@ -70,7 +71,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
     </md-toolbar>
 
     <md-content layout="row" flex>
-      <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-xl')" md-is-open="isSidenavOpen">
+      <md-sidenav ng-cloak layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-xl')" md-is-open="isSidenavOpen">
         <md-list>
           <md-list-item class="md-2-line" ng-repeat="item in sidebarList">
             <md-checkbox ng-model="item.done"></md-checkbox>
@@ -83,23 +84,18 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
       </md-sidenav>
 
       <div id="content" layout="column" flex ng-view="main">
-        Loading...
+        <div class="init-loading">Loading...</div>
       </div>
     </md-content>
   </body>
 
   <script type="text/ng-template" id="home.html">
     <div class="home-view">
-      <div ng-show="isSearchingLocation">
-        <div class="loading-geoloc">
-          <div class="text">{{ tr('Encontrando tu ciudad...') }}</div>
-
-          <div layout="row" layout-xs="column" layout-align="space-around">
-            <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
-          </div>
+      <div ng-show="isSearchingLocation" class="loading-geoloc" style="padding: 16px">
+        <div layout="row" layout-xs="column" layout-align="space-around">
+          <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
         </div>
       </div>
-
       <div ng-show="isManualCityFinder">
         <form class="manual-geoloc">
           <md-autocomplete flex required
@@ -171,6 +167,12 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
   <script type="text/ng-template" id="post-detail.html">
     <div class="post-detail-view md-padding" ng-class="{'expired': post.expired}">
       <h1 ng-bind="post.title"></h1>
+      <div class="pics">
+        <div class="pic" style="background-image: url({{ pic_1.url }})"></div>
+        <div class="pic" style="background-image: url({{ pic_2.url }})"></div>
+        <div class="pic" style="background-image: url({{ pic_3.url }})"></div>
+        <div class="pic" style="background-image: url({{ pic_4.url }})"></div>
+      </div>
       <div markdown-to-html="post.text"></div>
       <!-- <dXXXiv ng-biXXXnd-html="post.teXXXxt_html"></dXXXiv> -->
     </div>
@@ -187,25 +189,25 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
   </script>
 
   <script type="text/ng-template" id="post-create.html">
-    <form name="addpostForm md-padding" class="add-post-view">
-      <md-content class="formfields" layout="column">
+    <form name="addpostForm" class="add-post-view md-padding">
 
-        <div class="piclist">
-          <div class="pic" ng-repeat="pic in addpost.pics track by $index">
-            <input id="inputImage{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
-            <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait">
-              <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
-            </div>
-            <img style="background-color: gray" src="" ng-if="addpost.pics[$index].resized" ng-src="{{ addpost.pics[$index].resized.dataURL }}">
-            <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove">
-              <md-icon ng-click="addpost.pics[$index].removeImage()">trash-a</md-icon>
-            </md-button>
+      <div class="pics">
+        <div class="pic" ng-repeat="pic in addpost.pics track by $index">
+          <input id="pic_{{$index}}" type="file" accept="image/*" image="addpost.pics[$index]" resize-max-height="500" resize-max-width="500" resize-quality="0.7">
+          <div ng-if="addpost.pics[$index].wait && !addpost.pics[$index].resized" class="wait">
+            <md-progress-circular md-mode="indeterminate" class="md-hue-3"></md-progress-circular>
           </div>
+          <img style="background-color: gray" src="" ng-if="addpost.pics[$index].resized" ng-src="{{ addpost.pics[$index].resized.dataURL }}">
+          <md-button ng-if="addpost.pics[$index].resized" class="remove-btn md-fab md-mini" aria-label="Remove">
+            <md-icon ng-click="addpost.pics[$index].removeImage()">trash-a</md-icon>
+          </md-button>
         </div>
+      </div>
 
+      <md-content class="formfields" layout="column">
         <md-input-container>
           <label>Email:</label>
-          <input type="text" name="addpostEmail" ng-model="addpost.email" /*required*/ md-maxlength="100" /*md-minlength="6"*/ >
+          <input type="text" name="addpostEmail" ng-model="addpost.email" required md-maxlength="100" minlength="6">
           <div ng-messages="addpostForm.addpostEmail.$error" ng-show="addpostForm.addpostEmail.$dirty">
             <div ng-message="required">This is required!</div>
             <div ng-message="md-maxlength">That is too long!</div>
@@ -214,7 +216,7 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </md-input-container>
         <md-input-container>
           <label>Título:</label>
-          <input type="text" name="addpostTitle" ng-model="addpost.title" /*required*/ md-maxlength="100" /*md-minlength="10"*/ >
+          <input type="text" name="addpostTitle" ng-model="addpost.title" required md-maxlength="100" minlength="10">
           <div ng-messages="addpostForm.addpostTitle.$error" ng-show="addpostForm.addpostTitle.$dirty">
             <div ng-message="required">This is required!</div>
             <div ng-message="md-maxlength">That is too long!</div>
@@ -231,8 +233,9 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
           </div>
         </md-input-container>
         <md-input-container>
-          <md-select placeholder="Válido por:" ng-model="addpost.expiresDelta" aria-label="Select valid for">
-            <md-option ng-value="opt[0]" ng-repeat="opt in expiresDeltaOptions">{{opt[1]}}</md-option>
+          <label>{{ tr('Válido por') }}:</label>
+          <md-select ng-model="addpost.expiresDelta">
+            <md-option ng-value="delta.days" ng-repeat="delta in expiresDeltaOptions">{{ delta.title }}</md-option>
           </md-select>
         </md-input-container>
         <div class="md-actions" layout="row">
@@ -243,50 +246,6 @@ function setCanonical(s){window.document.head.querySelector('link[rel="canonical
         </div>
       </md-content>
     </form>
-  </script>
-
-  <script type="text/ng-template" id="post-detail-dialog.html">
-    <md-dialog aria-label="{{ post.title }}" class="post-detail-view" ng-class="{'expired': post.expired}">
-      <form>
-        <md-toolbar>
-          <div class="md-toolbar-tools">
-            <h2>{{ post.title }}</h2>
-            <span flex></span>
-            <md-button class="md-icon-button" ng-click="cancel()">
-              <md-icon>close</md-icon>
-            </md-button>
-          </div>
-        </md-toolbar>
-        <md-dialog-content style="max-width:800px;max-height:810px; ">
-          <md-tabs md-dynamic-height md-border-bottom>
-            <md-tab label="one">
-              <md-content class="md-padding">
-                <h1 class="md-display-2">Anuncio</h1>
-                <div markdown-to-html="post.text"></div>
-              </md-content>
-            </md-tab>
-            <md-tab label="two">
-              <md-content class="md-padding">
-                <h1 class="md-display-2">Contacto</h1>
-                <p>...</p>
-              </md-content>
-            </md-tab>
-          </md-tabs>
-        </md-dialog-content>
-        <md-dialog-actions layout="row">
-          <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
-            More on Wikipedia
-          </md-button>
-          <span flex></span>
-          <md-button ng-click="answer('not useful')" >
-            Not Useful
-          </md-button>
-          <md-button ng-click="answer('useful')" style="margin-right:20px;" >
-            Useful
-          </md-button>
-        </md-dialog-actions>
-      </form>
-    </md-dialog>
   </script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
