@@ -23,6 +23,18 @@ def make_username(email):
     return slugify(email).lower()[:30]
 
 
+class Category(models.Model):
+    slug = models.SlugField(blank=False)
+    old = models.CharField(max_length=5, blank=True, default="")
+    parent = models.CharField(max_length=20, blank=True, default="")
+    title = models.CharField(max_length=50, blank=False)
+    descr = models.CharField(max_length=500, blank=True, default="")
+    is_nsfw = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
 
@@ -35,6 +47,9 @@ class Post(models.Model):
 
     user = models.ForeignKey(User, db_index=True, null=True, default=None)
 
+    categories = models.ManyToManyField(Category, related_name='posts')
+
+    # TODO: remove, only used for import
     category = models.CharField(max_length=30, blank=True, default='',
                                 db_index=True, choices=CATEGORY_CHOICES)
 

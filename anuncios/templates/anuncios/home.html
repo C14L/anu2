@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <h1>Anuncios1</h1>
+
+  {% for grouping in grouping_list %}
+    <h2>{{ grouping.title }}</h2>
+    <ul>
+      {% for category in object_list %}
+        {% if category.parent == grouping.slug %}
+          <li><a href="{% url 'post-list-html' city.url category.slug %}">{{ category.title }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+</body>
+</html>

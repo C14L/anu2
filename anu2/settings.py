@@ -1,12 +1,9 @@
 import os
-
-# Import private settings, not in GIT.
-from anu2.settings_private import *
+from anu2 import settings_private
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = os.path.exists('/islocal.txt')
 PRODUCTION = not DEBUG
-TEMPLATE_DEBUG = DEBUG
 SITE_ID = 1
 ALLOWED_HOSTS = []
 ROOT_URLCONF = 'anu2.urls'
@@ -25,6 +22,15 @@ if not PRODUCTION:
     STATICFILES_DIRS = (os.path.join(BASE_DIR, "ng-app"), )
 MEDIA_URL = '/p/'
 MEDIA_ROOT = 'media'
+
+SECRET_KEY = settings_private.SECRET_KEY
+ADMINS = settings_private.ADMINS
+MANAGERS = settings_private.MANAGERS
+DATABASES = settings_private.DATABASES
+if not PRODUCTION:
+    DATABASES['default']['USER'] = 'chris'
+    DATABASES['default']['PASSWORD'] = 'pla'
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',

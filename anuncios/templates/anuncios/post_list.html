@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+
+  <h1>Anuncios1</h1>
+
+  <ul>
+    {% for object in object_list %}
+      <li><a href="{% url 'post-detail-html' object.pk %}">{{ object.title }}</a></li>
+    {% endfor %}
+  </ul>
+
+</body>
+</html>

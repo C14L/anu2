@@ -1,21 +1,62 @@
 import os
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import get_language
+from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from anuncios.models import Post
+from anuncios.models import Post, Category
 from anuncios.serializers import PostSerializer, UserSerializer
 from anuncios.utils import get_category_item
-from dtrcity.models import boundingBox, City, AltName
+from dtrcity.models import boundingBox, Country, City, AltName
 
+
+def locate_user_by_city(request):
+    return get_object_or_404(AltName, **{'url': 'alemania/sachsen/zwickau',
+                             'language': 'es', 'type': 3, 'is_main': True})
+
+
+class HomeViewHTML(ListView):
+    model = Category
+    template_name = 'anuncios/home.html'
+
+    def get_context_data(self, **kwargs):
+        cats = settings.ANUNCIOS['CATEGORIES']
+        context = super().get_context_data(**kwargs)
+        context['city'] = locate_user_by_city(self.request)
+        context['grouping_list'] = [x for x in cats if x['parent'] is None]
+        return context
+
+
+class CategoryListHTML(ListView):
+    pass
+    #queryset =
+    #url(r'^(?P<country>[a-z0-9-_]+)/'
+    #    r'(?P<city>[a-z0-9-_]+)/$',
+
+
+class PostListHTML(ListView):
+    model = Post
+    paginate_by = 25
+
+
+class PostDetailHTML(DetailView):
+    model = Post
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['city'] = locate_user_by_city(self.request)
+        return context
+
+
+# # #
 
 class AppHTMLView(View):
 

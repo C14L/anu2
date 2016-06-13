@@ -1,6 +1,6 @@
 import csv
-
 import sys
+
 from dateutil.parser import parse
 from django.conf import settings
 from django.contrib.auth.models import User

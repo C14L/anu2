@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from anuncios import views, signals
-import dtrcity.urls
 
+import dtrcity.urls
+from anuncios import views
 
 """
 ------------------+--------------+--------------+--------------+--------------+
@@ -14,8 +14,6 @@ REST layout:      | GET          | POST         | PUT          | DELETE       |
                   |              |              |              |              |
 ------------------+--------------+--------------+--------------+--------------+
 
-/guatemala/nacional/gente/mujer-busca-hombre.hb5
-/nicaragua/managua/tema-gente.1
 
 """
 
@@ -23,6 +21,25 @@ REST layout:      | GET          | POST         | PUT          | DELETE       |
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^dtrcity/', include(dtrcity.urls)),
+
+    # Web view
+    # /guatemala/nacional/gente/mujer-busca-hombre.hb5
+    # /nicaragua/managua/tema-gente.1
+
+    url(r'^$',
+        views.HomeViewHTML.as_view(), name='home-html'),
+
+    url(r'^(?P<city>[-\w]+/[-\w]+/[-\w]+)/?$',
+        views.CategoryListHTML.as_view(), name="category-list-html"),
+
+    url(r'^(?P<city>[a-z0-9-_]+/[a-z0-9-_]+/[a-z0-9-_]+)/'
+        r'(?P<category>[a-z0-9-_]+)/?$',
+        views.PostListHTML.as_view(), name="post-list-html"),
+
+    url(r'^clasificado(?P<pk>\d+)/?$',
+        views.PostDetailHTML.as_view(), name="post-detail-html"),
+
+    # ---
 
     url(r'^api/v1/users/$',
         views.UserList.as_view(), name="user-item"),

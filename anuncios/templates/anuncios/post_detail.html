@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+
+<h1>{{ object.title }}</h1>
+<p>{{ object.text }}</p>
+<p>Categories: {% for cat in object.categories.all %}<a href="{% url 'post-list-html' city.url cat.slug %}">{{ cat.title }}</a>{% endfor %}</p>
+<p>Published: {{ object.created|date }}</p>
+
+</body>
+</html>
