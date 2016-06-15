@@ -66,10 +66,9 @@ class PostCreateHTML(CreateView):
     def get_initial(self):
         categories = self.request.GET.get('c', '').split(',')
         city_pk = self.request.GET.get('l', '')
-        city = City.objects.filter(pk=city_pk).first() or ''
         return {
             'categories': Category.objects.filter(slug__in=categories),
-            'city': city.get_crc(),
+            'city': get_object_or_404(City, pk=city_pk).pk,
             'created': now().strftime('%Y-%m-%d'),
             'publish': now().strftime('%Y-%m-%d'),
         }
@@ -95,7 +94,9 @@ class PostUpdateHTML(UpdateView):
     def get_success_url(self):
         return reverse('post-detail-html', args=[self.object.pk])
 
+
 # # #
+
 
 class AppHTMLView(View):
 

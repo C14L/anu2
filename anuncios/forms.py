@@ -50,6 +50,7 @@ class AutocompleteField(forms.CharField):
         return super().to_python(model_instance.pk)
 
     def prepare_value(self, value):
+        print('############ prepare_value -> value: "{}"'.format(value))
         return self.fk_forward_lookup(value)
 
     def clean(self, value):
