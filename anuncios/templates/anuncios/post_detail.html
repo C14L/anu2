@@ -1,15 +1,29 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1><a href="{% url 'home-html' %}">{{ object.title }}</a></h1>
 
-<h1>{{ object.title }}</h1>
-<p>{{ object.text }}</p>
-<p>Categories: {% for cat in object.categories.all %}<a href="{% url 'post-list-html' city.url cat.slug %}">{{ cat.title }}</a>{% endfor %}</p>
-<p>Published: {{ object.created|date }}</p>
+    <p>{{ object.text }}</p>
 
-</body>
+    <p>
+      Categories:
+      {% for cat in object.categories.all %}
+        <a href="{% url 'post-list-html' object.city.tr_url cat.slug %}">{{ cat.title }}</a>
+      {% endfor %}
+    </p>
+
+    <ul>
+      <li>Created: {{ object.created|date }}</li>
+      <li>Last updated: {{ object.updated|date }}</li>
+      <li>Published: {{ object.publish|date }}</li>
+      <li>Expires: {{ object.expires|date }}</li>
+    </ul>
+
+    <p><a href="{% url 'post-update-html' object.pk %}">{% trans 'edit' %}</a></p>
+  </body>
 </html>

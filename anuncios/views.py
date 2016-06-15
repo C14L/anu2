@@ -4,23 +4,21 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
 from django.utils.translation import get_language
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView, \
+    UpdateView
 from django.views.generic.base import View
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from anuncios.forms import PostForm
 from anuncios.models import Post, Category
 from anuncios.serializers import PostSerializer, UserSerializer
 from anuncios.utils import get_category_item
-from dtrcity.models import boundingBox, Country, City, AltName
-
-
-def locate_user_by_city(request):
-    return get_object_or_404(AltName, **{'url': 'alemania/sachsen/zwickau',
-                             'language': 'es', 'type': 3, 'is_main': True})
+from dtrcity.models import boundingBox, City, AltName
 
 
 class HomeViewHTML(ListView):
@@ -30,31 +28,72 @@ class HomeViewHTML(ListView):
     def get_context_data(self, **kwargs):
         cats = settings.ANUNCIOS['CATEGORIES']
         context = super().get_context_data(**kwargs)
-        context['city'] = locate_user_by_city(self.request)
+        context['city'] = City.get_by_url('mexico/puebla/puebla-de-zaragoza')
         context['grouping_list'] = [x for x in cats if x['parent'] is None]
         return context
 
 
 class CategoryListHTML(ListView):
-    pass
-    #queryset =
-    #url(r'^(?P<country>[a-z0-9-_]+)/'
-    #    r'(?P<city>[a-z0-9-_]+)/$',
+    model = Category
+
+    def get_context_data(self, **kwargs):
+        cats = settings.ANUNCIOS['CATEGORIES']
+        context = super().get_context_data(**kwargs)
+        context['city'] = City.get_by_url(self.kwargs['city'])
+        context['grouping_list'] = [x for x in cats if x['parent'] is None]
+        return context
 
 
 class PostListHTML(ListView):
-    model = Post
     paginate_by = 25
+    category = None
+
+    def get_queryset(self):
+        self.category = get_object_or_404(Category, slug=self.kwargs['category'])
+        return Post.objects.by_category(self.category)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['city'] = City.get_by_url(self.kwargs['city'])
+        context['category'] = self.category
+        return context
+
+
+class PostCreateHTML(CreateView):
+    model = Post
+    form_class = PostForm
+
+    def get_initial(self):
+        categories = self.request.GET.get('c', '').split(',')
+        city_pk = self.request.GET.get('l', '')
+        city = City.objects.filter(pk=city_pk).first() or ''
+        return {
+            'categories': Category.objects.filter(slug__in=categories),
+            'city': city.get_crc(),
+            'created': now().strftime('%Y-%m-%d'),
+            'publish': now().strftime('%Y-%m-%d'),
+        }
+
+    def get_success_url(self):
+        return reverse('post-detail-html', args=[self.object.pk])
 
 
 class PostDetailHTML(DetailView):
     model = Post
 
     def get_context_data(self, **kwargs):
+        print('self.object.pk === {}'.format(self.object.pk))
         context = super().get_context_data(**kwargs)
-        context['city'] = locate_user_by_city(self.request)
+        context['city'] = self.object.city
         return context
 
+
+class PostUpdateHTML(UpdateView):
+    model = Post
+    form_class = PostForm
+
+    def get_success_url(self):
+        return reverse('post-detail-html', args=[self.object.pk])
 
 # # #
 

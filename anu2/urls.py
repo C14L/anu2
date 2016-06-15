@@ -29,15 +29,24 @@ urlpatterns = [
     url(r'^$',
         views.HomeViewHTML.as_view(), name='home-html'),
 
+    url(r'^clasificado/edit/(?P<pk>\d+)?$',
+        views.PostUpdateHTML.as_view(), name="post-update-html"),
+
+    url(r'^clasificado/(?P<pk>\d+)/?$',
+        views.PostDetailHTML.as_view(), name="post-detail-html"),
+
+    url(r'^clasificado/?$',
+        views.PostCreateHTML.as_view(), name="post-create-html"),
+
+    # url(r'^clasificado/del/(?P<pk>\d+)?$',
+    #     views.PostDestroyHTML.as_view(), name="post-destroy-html"),
+
     url(r'^(?P<city>[-\w]+/[-\w]+/[-\w]+)/?$',
         views.CategoryListHTML.as_view(), name="category-list-html"),
 
     url(r'^(?P<city>[a-z0-9-_]+/[a-z0-9-_]+/[a-z0-9-_]+)/'
         r'(?P<category>[a-z0-9-_]+)/?$',
         views.PostListHTML.as_view(), name="post-list-html"),
-
-    url(r'^clasificado(?P<pk>\d+)/?$',
-        views.PostDetailHTML.as_view(), name="post-detail-html"),
 
     # ---
 

@@ -39,6 +39,18 @@ class Profile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
 
 
+class PostQuerySet(models.QuerySet):
+
+    def by_category(self, category):
+        # category may be a pk, a slug, or a Category instance.
+        if isinstance(category, int):
+            category = Category.objects.get(pk=category)
+        elif isinstance(category, str):
+            category = Category.objects.get(slug=category)
+
+        return self.filter(categories=category)
+
+
 class Post(models.Model):
 
     EXPIRE_DAYS = getattr(settings.ANUNCIOS, 'EXPIRE_DAYS', 90)
@@ -53,11 +65,11 @@ class Post(models.Model):
     category = models.CharField(max_length=30, blank=True, default='',
                                 db_index=True, choices=CATEGORY_CHOICES)
 
-    lat = models.FloatField(null=True, default=None)
-    lng = models.FloatField(null=True, default=None)
+    lat = models.FloatField(null=True, default=None, blank=True)
+    lng = models.FloatField(null=True, default=None, blank=True)
 
     # The city closest to the coords
-    city = models.ForeignKey(City, null=True, default=None)
+    city = models.ForeignKey(City, null=True, default=None, blank=True)
 
     # The raw name strings for faster lookup
     city_name = models.CharField(max_length=100, default='', blank=True)
@@ -68,50 +80,52 @@ class Post(models.Model):
     text = models.TextField()  # markdown
 
     pic_1 = ProcessedImageField(upload_to=get_image_path,
-                                null=True, default=None,
+                                null=True, default=None, blank=True,
                                 processors=[ResizeToFit(640, 640)],
                                 format='JPEG', options={'quality': 70})
     pic_2 = ProcessedImageField(upload_to=get_image_path,
-                                null=True, default=None,
+                                null=True, default=None, blank=True,
                                 processors=[ResizeToFit(640, 640)],
                                 format='JPEG', options={'quality': 70})
     pic_3 = ProcessedImageField(upload_to=get_image_path,
-                                null=True, default=None,
+                                null=True, default=None, blank=True,
                                 processors=[ResizeToFit(640, 640)],
                                 format='JPEG', options={'quality': 70})
     pic_4 = ProcessedImageField(upload_to=get_image_path,
-                                null=True, default=None,
+                                null=True, default=None, blank=True,
                                 processors=[ResizeToFit(640, 640)],
                                 format='JPEG', options={'quality': 70})
 
-    created = models.DateTimeField(db_index=True, default=now, null=True)
-    updated = models.DateTimeField(default=now, null=True)
+    created = models.DateTimeField(db_index=True, default=now, null=True, blank=True)
+    updated = models.DateTimeField(default=now, null=True, blank=True)
     # auto-publish time:
-    publish = models.DateTimeField(db_index=True, default=now, null=True)
-    expires = models.DateTimeField(default=None, null=True)
+    publish = models.DateTimeField(db_index=True, default=now, null=True, blank=True)
+    expires = models.DateTimeField(default=None, null=True, blank=True)
 
-    created_ip = models.CharField(max_length=30, default='')
-    updated_ip = models.CharField(max_length=30, default='')
+    created_ip = models.CharField(max_length=30, default='', blank=True)
+    updated_ip = models.CharField(max_length=30, default='', blank=True)
 
     # Secret PIN to edit anon posts.
-    pin = models.CharField(max_length=5, default='')
+    pin = models.CharField(max_length=5, default='', blank=True)
     # Times post was viewed.
-    count_views = models.PositiveIntegerField(default=0)
+    count_views = models.PositiveIntegerField(default=0, blank=True)
     # Times user updated post.
-    count_updates = models.PositiveIntegerField(default=0)
+    count_updates = models.PositiveIntegerField(default=0, blank=True)
     # Times visitors send message through msg form.
-    count_messages = models.PositiveIntegerField(default=0)
+    count_messages = models.PositiveIntegerField(default=0, blank=True)
     # Mark NSFW content.
-    is_nsfw = models.BooleanField(default=False)
+    is_nsfw = models.BooleanField(default=False, blank=True)
     # For the owner to temporarily un-publish an ad.
-    is_public = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False, blank=True)
     # For the owner or admin to delete an ad. Only admin can un-delete.
-    is_delete = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False, blank=True)
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['-pk']
         index_together = [['lat', 'lng'],
                           ['category', 'is_public', 'created'], ]
+
+    objects = PostQuerySet.as_manager()
 
     def __str__(self):
         return self.title
