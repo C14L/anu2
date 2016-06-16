@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'imagekit',
     'dtrcity',
+    'basicautocomplete',
     'anuncios',
 )
 MIDDLEWARE_CLASSES = (
