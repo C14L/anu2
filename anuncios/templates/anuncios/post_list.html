@@ -7,12 +7,8 @@
 </head>
 <body>
 
-  <h1><a href="{% url 'home-html' %}">{{ category.title }} in {{ city.tr_name }}</a></h1>
-
-  <p><a href="{% url 'category-list-html' city.tr_url %}">{% blocktrans trimmed with city_crc=city.get_crc %}
-    {{ city_crc }}
-  {% endblocktrans %}</a></p>
-
+  <h1><a href="{% url 'category-list-html' city.tr_url %}">{{ category.title }} in {{ city.tr_name }}</a></h1>
+  
   <p><a href="{% url 'post-create-html' %}?c={{ category.slug }}&l={{ city.pk }}">{% blocktrans %}
     Agrega un anuncio
   {% endblocktrans %}</a></p>
@@ -26,6 +22,9 @@
       <span style="color: green;">{{ object.city_name }}</span>
       <span style="color: gray;">{{ object.city.tr_crc }}</span>
       <span style="color: pink;">{{ object.id }}</span>
+      <span style="color: red;">
+        by {% if object.user.pk %}<a href="{% url 'user-post-list-html' object.user.pk %}">user: {{ object.user.pk }}</a>{% else %}anonymous user{% endif %}
+      </span>
     </li>
   {% endfor %}
 </ul>

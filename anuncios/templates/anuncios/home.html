@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <script src="/static/anuncios.js"></script>
 </head>
 <body>
   <h1>Anuncios1</h1>
@@ -19,4 +20,8 @@
   {% endfor %}
 
 </body>
+<script>
+  // redirect to user's location
+  getUserCity().then((response) => { location.pathname = '/' + response.url });
+</script>
 </html>

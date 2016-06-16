@@ -44,17 +44,35 @@ class CategoryListHTML(ListView):
         return context
 
 
-class PostListHTML(ListView):
+class UserPostListHTML(ListView):
+    """List of posts by a single user, usually 'own posts' for auth users."""
     paginate_by = 25
-    category = None
+    template_name = 'anuncios/user_post_list.html'
+    view_user = None
 
     def get_queryset(self):
-        self.category = get_object_or_404(Category, slug=self.kwargs['category'])
-        return Post.objects.by_category(self.category)
+        self.view_user = get_object_or_404(User, pk=self.kwargs['user'])
+        return Post.objects.by_user(self.view_user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['city'] = City.get_by_url(self.kwargs['city'])
+        context['view_user'] = self.view_user
+        return context
+
+
+class PostListHTML(ListView):
+    paginate_by = 25
+    city = None
+    category = None
+
+    def get_queryset(self):
+        self.city = City.get_by_url(self.kwargs['city'])
+        self.category = get_object_or_404(Category, slug=self.kwargs['category'])
+        return Post.objects.by_city_and_category(self.city, self.category)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['city'] = self.city
         context['category'] = self.category
         return context
 
@@ -66,11 +84,16 @@ class PostCreateHTML(CreateView):
     def get_initial(self):
         categories = self.request.GET.get('c', '').split(',')
         city_pk = self.request.GET.get('l', '')
+        email = ''
+        if self.request.user.is_authenticated():
+            email = self.request.user.email
+
         return {
             'categories': Category.objects.filter(slug__in=categories),
             'city': get_object_or_404(City, pk=city_pk).pk,
             'created': now().strftime('%Y-%m-%d'),
             'publish': now().strftime('%Y-%m-%d'),
+            'email': email,
         }
 
     def get_success_url(self):
