@@ -1,77 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
-
-<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-  {{ form.as_p }}
-  <input type="submit" value="Save" />
-</form>
-
-</body>
-<style>
-  input[type="autocomplete-url"] { background-color: inherit; }
-  input[type="autocomplete-url"].autocomplete-loading { background-color: green; }
-  ul.autocomplete-dropdown { display: flex; flex-flow: row wrap;  max-height: 300px; box-shadow: 0 0 3px rgba(0,0,0,0.5); list-style: none; margin: 10px 0; padding: 0; border: 0; overflow-x: hidden; overflow-y: auto; }
-  ul.autocomplete-dropdown > li { flex: 1 0; white-space: nowrap; text-align: center; color: black; margin: 0; padding: 0.5em; background-color: white; border: 1px solid rgba(0,0,0,0.12); cursor: pointer; }
-  ul.autocomplete-dropdown > li:hover { background-color: #F3F3F3; }
-</style>
-<script>
-(function(){
-
-  /* Simple autocomplete for input[type=text] elements. [ C14L.com ] */
-
-  var ul = document.createElement('ul');
-  ul.classList.add('autocomplete-dropdown');
-
-  function removeOptionsList() {
-    var elms = document.getElementsByClassName('autocomplete-dropdown');
-    for (var i=0; i<elms.length; i++) {
-      elms[i].parentNode.removeChild(elms[i]);
-    }
-  }
-  function emptyOptionsList(ulElm) {
-    while (ulElm.firstChild) ulElm.removeChild(ulElm.firstChild);
-  }
-  function showOptionsList(optsList, elm) {
-    var parentElm = elm.parentNode;
-    emptyOptionsList(ul);
-    for (var i=0, len=optsList.length; i<len; i++) {
-      var li = document.createElement('li');
-      li.appendChild(document.createTextNode(optsList[i]));
-      li.addEventListener('click', function(event){ elm.value = event.target.innerHTML; removeOptionsList(); });
-      ul.appendChild(li);
-    }
-    parentElm.insertBefore(ul, elm.nextSibling);
-  }
-  function findAllAutocompleteInputs() {
-    var inputElms = document.getElementsByTagName('input');
-    var inputList = [];
-    for (var i=0, len=inputElms.length; i<len; i++) {
-      if (inputElms[i].hasAttribute('type') &&
-          inputElms[i].getAttribute('type') == 'text' &&
-          inputElms[i].hasAttribute('autocomplete-url')) {
-        inputList.push(inputElms[i]);
-      }
-    }
-    return inputList;
-  }
-  var elms = findAllAutocompleteInputs();
-  for (var i=0; i<elms.length; i++) {
-    elms[i].addEventListener('keyup', function(event) {
-      if (event.target.value.length < 3) return;
-      event.target.classList.add('autocomplete-loading');
-      var req = new XMLHttpRequest();
-      req.open('GET', event.target.getAttribute('autocomplete-url') + '?q=' + event.target.value);
-      req.addEventListener('load', function(){ if (this.status == 200 && this.response != null) { showOptionsList(JSON.parse(this.response), event.target) }});
-      req.addEventListener('loadend', function(){ event.target.classList.remove('autocomplete-loading') });
-      req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-      req.send();
-    });
-  }
-})();
-</script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+     {{ form.media }}
+  </head>
+  <body>
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Save" />
+    </form>
+  </body>
 </html>
