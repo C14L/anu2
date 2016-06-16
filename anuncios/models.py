@@ -41,6 +41,32 @@ class Profile(models.Model):
 
 class PostQuerySet(models.QuerySet):
 
+    def confirmed_only(self):
+        return self.filter(is_confirmed=True)
+
+    def by_user(self, user, include_unconfirmed=False):
+        # user may be a pk, a username, or a User instance.
+        if isinstance(user, int):
+            user = User.objects.get(pk=user)
+        elif isinstance(user, str):
+            user = User.objects.get(username=user)
+
+        if include_unconfirmed:
+            return self.filter(user=user)
+
+        return self.confirmed_only().filter(user=user)
+
+    def by_city(self, city):
+        # city may be a pk, a url, a crc, or a City instance.
+        if isinstance(city, int):
+            city = City.objects.get(pk=city)
+        elif isinstance(city, str) and city.count(', ') == 2:
+            city = City.get_by_url(city)
+        elif isinstance(city, str) and city.count('/') == 2:
+            city = City.get_by_crc(city)
+
+        return self.confirmed_only().filter(city=city)
+
     def by_category(self, category):
         # category may be a pk, a slug, or a Category instance.
         if isinstance(category, int):
@@ -48,7 +74,10 @@ class PostQuerySet(models.QuerySet):
         elif isinstance(category, str):
             category = Category.objects.get(slug=category)
 
-        return self.filter(categories=category)
+        return self.confirmed_only().filter(categories=category)
+
+    def by_city_and_category(self, city, category):
+        return self.by_city(city).by_category(category)
 
 
 class Post(models.Model):
@@ -69,7 +98,8 @@ class Post(models.Model):
     lng = models.FloatField(null=True, default=None, blank=True)
 
     # The city closest to the coords
-    city = models.ForeignKey(City, null=True, default=None, blank=True)
+    city = models.ForeignKey(City, null=True, default=None, blank=True,
+                             related_name='posts')
 
     # The raw name strings for faster lookup
     city_name = models.CharField(max_length=100, default='', blank=True)
@@ -115,6 +145,8 @@ class Post(models.Model):
     count_messages = models.PositiveIntegerField(default=0, blank=True)
     # Mark NSFW content.
     is_nsfw = models.BooleanField(default=False, blank=True)
+    # Anonymous user has to confirm email via link before publication.
+    is_confirmed = models.BooleanField(default=False, blank=True)
     # For the owner to temporarily un-publish an ad.
     is_public = models.BooleanField(default=False, blank=True)
     # For the owner or admin to delete an ad. Only admin can un-delete.

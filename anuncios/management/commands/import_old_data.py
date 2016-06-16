@@ -18,25 +18,45 @@ class Command(BaseCommand):
     help = 'Import old ads data from ~/Downloads/web1_2/es__ads.csv.'
     city_tr = dict()
     location_not_found = dict()
+    user_tr = []
 
     def handle(self, *args, **options):
-        try:
-            self.build_city_tr()
-            # User.objects.all().delete()
-            Post.objects.all().delete()
-            # self.import_auth_user()
-            self.import_ads()
-            self.done()
-        except KeyboardInterrupt:
-            self.done()
-            sys.exit()
 
-    def done(self):
-        print('.')
-        print('='*80)
-        for k in self.location_not_found.keys():
-            print('{:05d} - {}'.format(self.location_not_found[k], k))
-        print('='*80)
+        """print('Deleting current entries...')
+        input('-- Press RETURN to start --')
+        User.objects.all().delete()
+        print('- deleted User objects, '
+              'table has {} entries.'.format(User.objects.all().count()))
+        Post.objects.all().delete()
+        print('- deleted Post objects, '
+              'table has {} entries.'.format(Post.objects.all().count()))
+        print('')
+        print('Importing all users...')
+        input('-- Press RETURN to start --')
+        self.import_auth_user()
+        print('Users imported: {}'.format(User.objects.all().count()))
+        print('Created user_id map with {} entries.'.format(len(self.user_tr)))
+        print('')
+        """
+        print('Importing all posts...')
+        input('-- Press RETURN to start --')
+        self.import_ads()
+        print('Posts imported: {}'.format(Post.objects.all().count()))
+        print('')
+        print('Build city_tr map...')
+        input('-- Press RETURN to start --')
+        self.build_city_tr()
+        print('Created city_tr with {} entries.'.format(len(self.city_tr)))
+        print('')
+        print('Find City objects for all city names of ads...')
+        print('- Total number of Posts: {}'.format(Post.objects.all().count()))
+        print('- Posts without cities: {}'.format(Post.objects.filter(city=None).count()))
+        print('')
+        input('-- Press RETURN to start --')
+        self.fix_post_city()
+        print('Added City instances to all posts possilbe.')
+        print('- Total number of Posts: {}'.format(Post.objects.all().count()))
+        print('- Posts without cities: {}'.format(Post.objects.filter(city=None).count()))
 
     def build_city_tr(self):
         """Reads the list of cities and city id numbers."""
@@ -55,6 +75,8 @@ class Command(BaseCommand):
             return self.city_tr[city]
         except ValueError:
             return city
+        except KeyError:
+            return city
 
     def get_latlng(self, country, state, city):
         """Find latlng value for the given city id code crypt thing."""
@@ -63,33 +85,35 @@ class Command(BaseCommand):
         # state -> varchar(30)
         # city -> int(8)
 
+        print('#' * 72)
+
         # 1. Find the country
         country = slugify(country).lower()
         # Some manual fixing
         if country == 'costarica': country = 'costa-rica'
         if country == 'elsalvador': country = 'el-salvador'
 
-        # print('--> For country "{}", language "{}" ...'.format(country, lang))
+        print('--> For country "{}", language "{}" ...'.format(country, lang))
         countries = AltName.objects.filter(type=1, language=lang)
-        # print('Found {} countries in Altname ...'.format(countries.count()))
+        print('    ...found {} countries in Altname ...'.format(countries.count()))
         countries_f = countries.filter(slug__exact=country)
-        # print('Found {} exact matches ...'.format(countries_f.count()))
+        print('    ...found {} exact matches ...'.format(countries_f.count()))
 
         if countries_f.count() < 1:
             # Try to find partial matches
             countries_f = countries.filter(slug__contains=country)
-            # print('Found {} cointain countries: {} ...'
-            #       .format(countries_f.count(), countries_f))
+            print('    ...found {} cointain countries: {} ...'
+                  .format(countries_f.count(), countries_f))
 
         if countries_f.count() < 1:
             # Still no match, giving up
-            print('No location found for country: {}'.format(country))
+            print('    No location found for country: {}'.format(country))
             self.count_location_not_found(country)
             return None
 
         country = Country.objects.get(pk=countries_f[0].geoname_id)
         country_slug = countries_f[0].slug
-        # print('Found country object {} ...'.format(country))
+        # print('    ....found country object {} ...'.format(country))
 
         # 2. Find the city in that country
         # ---------------------------------
@@ -108,29 +132,48 @@ class Command(BaseCommand):
         if country_slug == 'republica-dominicana' and city == 'distrito-nacional':
             city = 'santo-domingo'
 
-        # print('--> For city "{}", language "{}" ...'.format(city, lang))
+        print('--> For city "{}", language "{}" ...'.format(city, lang))
         cities = AltName.objects.filter(type=3, language=lang, country=country)
-        # print('Found {} cities in Altname ...'.format(cities.count()))
+        print('    ...found {} cities in Altname ...'.format(cities.count()))
         cities_f = cities.filter(slug__exact=city)
-        # print('Found {} exact matches: {}'.format(cities_f.count(), cities_f))
+        print('    ...found {} exact matches: {}'.format(cities_f.count(), cities_f))
 
         if cities_f.count() < 1:
             # Try to find partial matches
             cities_f = cities.filter(slug__contains=city)
-            # print('Found {} cointain cities: {} ...'
-            #       .format(cities_f.count(), cities_f))
+            print('    ...found {} cointain cities: {} ...'.format(cities_f.count(), cities_f))
 
         if cities_f.count() < 1:
             # Still no match, giving up
             s = '{}, {}'.format(city, country_slug)
-            print('No location found for city: {}'.format(s))
+            print('    No location found for city: {}'.format(s))
             self.count_location_not_found(s)
             return None
 
         city = City.objects.get(pk=cities_f[0].geoname_id)
-        # print('City: {}, {} @ {}/{}'.format(city, city.country,
-        #                                     city.lat, city.lng))
+        print('City: {}, {} @ {}/{}'.format(city, city.country, city.lat, city.lng))
+
         return city
+
+    def fix_post_city(self):
+        posts = Post.objects.filter(city=None)
+        print('Found {} posts with no city set.'.format(posts.count()))
+
+        for post in posts:
+            cn = self.get_city_name(post.city_name)
+            city = self.get_latlng(post.country_name, post.region_name, cn)
+            if city:
+                post.lat = city.lat
+                post.lng = city.lng
+                post.city = city
+                post.city_name = city.tr_name
+                post.region_name = city.region.tr_name
+                post.country_name = city.country.tr_name
+                post.save()
+                print('.', end='', flush=True)
+            else:
+                print('x', end='', flush=True)
+                pass
 
     def import_ads(self):
         """
@@ -181,35 +224,40 @@ class Command(BaseCommand):
                 print('Skip because: no category')
                 return False
 
+            # Try to find the attached user in the user id map.
+            user = None
             try:
-                user = User.objects.get(username=row['email'][:30])
+                new_user_id = [x[1] for x in self.user_tr
+                               if str(x[0]) == str(row['user_id'])][0]
+                user = User.objects.get(pk=new_user_id)
+            except IndexError:
+                pass
             except User.DoesNotExist:
-                user = None  # orphaned ads have no owner
+                pass
+
+            row['email'] = row['email'].strip().lower()
+
+            if not user:
+                # If not found by id, try to find user by email
+                try:
+                    user = User.objects.get(email=row['email'])
+                except User.DoesNotExist:
+                    pass
 
             post, created = Post.objects.get_or_create(pk=row['id'])
             if not created:
                 print('Skip because: already exists pk='+row['id'])
                 return True  # already previously imported
 
-            city = self.get_latlng(row['pais'], row['estado'], row['ciudad'])
 
             post.user = user
             post.pin = row['passwd'][:5]
             post.title = row['title'][:200]
             post.text = row['text'] or ''
             post.category = category
-
-            if city:
-                post.lat = city.lat
-                post.lng = city.lng
-                post.city = city
-                post.city_name = city.tr_name
-                post.region_name = city.region.tr_name
-                post.country_name = city.country.tr_name
-            else:
-                post.city_name = self.get_city_name(row['ciudad'])
-                post.region_name = row['estado']
-                post.country_name = row['pais']
+            post.city_name = row['ciudad']
+            post.region_name = row['estado']
+            post.country_name = row['pais']
 
             try:
                 t = parse(row['time']).replace(microsecond=0).replace(tzinfo=utc)
@@ -285,8 +333,13 @@ class Command(BaseCommand):
             if not row['email']:
                 return False  # skip empty email/username
 
+            row['email'] = row['email'].strip().lower()
             username = make_username(row['email'])
             user, created = User.objects.get_or_create(username=username)
+
+            # Map the old user id to the new user id.
+            self.user_tr.append((row['id'], user.id))  # old id, new id
+
             if not created:
                 return False  # user with that email/username already exists
 
