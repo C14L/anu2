@@ -6,17 +6,19 @@ from basicautocomplete.forms import AutocompleteField
 from dtrcity.models import City
 
 
-def _get_city_by_pk(pk):
+def _get_city_crc_by_pk(pk):
+    """Return the string to be displayed in the <input> field."""
     return City.objects.get(pk=pk).tr_crc
 
 
 def _get_city_by_crc(crc):
+    """Return the database object found by the string from the <input> field."""
     return City.get_by_crc(crc)
 
 
 class PostForm(forms.ModelForm):
     city = AutocompleteField(_get_city_by_crc,
-                             _get_city_by_pk,
+                             _get_city_crc_by_pk,
                              reverse_lazy('city_autocomplete_crc'))
     email = forms.EmailField()
 
