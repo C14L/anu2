@@ -35,15 +35,19 @@ class CategoryListHTML(ListView):
         return context
 
 
-class UserPostListHTML(ListView):
-    """List of posts by a single user, usually 'own posts' for auth users."""
+class UserListHTML(ListView):
+    pass
+
+
+class UserDetailHTML(ListView):
+    """List of posts by a single user."""
     paginate_by = 25
-    template_name = 'anuncios/user_post_list.html'
+    template_name = 'anuncios/user_detail.html'
     view_user = None
 
     def get_queryset(self):
-        self.view_user = get_object_or_404(get_user_model(),
-                                           pk=self.kwargs['user'])
+        _pk = self.kwargs['pk']
+        self.view_user = get_object_or_404(get_user_model(), pk=_pk)
         return Post.objects.by_user(self.view_user)
 
     def get_context_data(self, **kwargs):

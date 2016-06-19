@@ -17,8 +17,11 @@ urlpatterns = [
     url(r'^$',
         views.HomeViewHTML.as_view(), name='home-html'),
 
-    url(r'^clasificados/user/(?P<pk>\d+)/?$',
-        views.UserPostListHTML.as_view(), name="user-post-list-html"),
+    url(r'^user/?$',
+        views.UserListHTML.as_view(), name="user-list-html"),
+
+    url(r'^user/(?P<pk>\d+)/?$',
+        views.UserDetailHTML.as_view(), name="user-detail-html"),
 
     url(r'^clasificados/edit/(?P<pk>\d+)?$',
         views.PostUpdateHTML.as_view(), name="post-update-html"),
