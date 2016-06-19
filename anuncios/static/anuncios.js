@@ -19,7 +19,6 @@ function getUserCity() {
                     req.send();
                 },
                 function (error) {
-                    log('City name API error.');
                     reject();
                 },
                 {
@@ -29,7 +28,6 @@ function getUserCity() {
                 }
             );
         } else {
-            log('Browser geolocation API not found.');
             reject();
         }
     });
