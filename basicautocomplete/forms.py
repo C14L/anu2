@@ -1,11 +1,15 @@
 from django import forms
 
 
-class AutocompleteField(forms.CharField):
+class AutocompleteTextInput(forms.TextInput):
 
     class Media:
         css = {'screen': ('basicautocomplete.css', ), }
         js = ('basicautocomplete.js', )
+
+
+class AutocompleteField(forms.CharField):
+    widget = AutocompleteTextInput
 
     def __init__(self, input_object_lookup, input_string_lookup,
                  autocomplete_url, autocomplete_query='q', *args, **kwargs):
