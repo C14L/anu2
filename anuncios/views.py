@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.http.response import HttpResponsePermanentRedirect
+from django.http.response import HttpResponsePermanentRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.views.generic import ListView, DetailView, CreateView, \
-    UpdateView
+    UpdateView, RedirectView
 
 from anuncios.forms import PostForm
 from anuncios.models import Post, Category
@@ -22,6 +22,18 @@ class HomeViewHTML(ListView):
         context['city'] = City.get_by_url('mexico/puebla/puebla-de-zaragoza')
         context['grouping_list'] = [x for x in cats if x['parent'] is None]
         return context
+
+
+class CityRedirectViewHTML(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self, *args, **kwargs):
+        q = self.request.GET.get('q', None)
+        try:
+            city = City.get_by_crc(q)
+        except City.DoesNotExist:
+            raise Http404
+        return reverse('category-list-html', args=[city.tr_url])
 
 
 class CategoryListHTML(ListView):

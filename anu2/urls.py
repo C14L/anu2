@@ -17,6 +17,9 @@ urlpatterns = [
     url(r'^$',
         views.HomeViewHTML.as_view(), name='home-html'),
 
+    url(r'^cityredir/$',
+        views.CityRedirectViewHTML.as_view(), name='city-redir'),
+
     url(r'^user/?$',
         views.UserListHTML.as_view(), name="user-list-html"),
 

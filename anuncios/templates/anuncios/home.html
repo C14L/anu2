@@ -1,12 +1,22 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <link href="/static/basicautocomplete.css" type="text/css" media="screen" rel="stylesheet" />
+  <script type="text/javascript" src="/static/basicautocomplete.js"></script>
   <script src="/static/anuncios.js"></script>
 </head>
 <body>
   <h1>Anuncios1</h1>
+  <div id="id-manual-geolocation" style="display:none">
+
+    <form action="{% url 'city-redir' %}" method="GET">
+      <input type="text" name="q" value="" placeholder="{% trans 'Busca tu ciudad...' %}" autocomplete-query="q" autocomplete-url="{% url 'city_autocomplete_crc' %}">
+      <input type="submit" value="{% trans 'Ver' %}">
+    </form>
+  </div>
 
   {% for grouping in grouping_list %}
     <h2>{{ grouping.title }}</h2>
@@ -22,6 +32,6 @@
 </body>
 <script>
   // redirect to user's location
-  getUserCity().then((response) => { location.pathname = '/' + response.url });
+  getUserCity().then((response) => { location.pathname = '/' + response.url }).catch(() => { document.getElementById('id-manual-geolocation').style.display='block' });
 </script>
 </html>

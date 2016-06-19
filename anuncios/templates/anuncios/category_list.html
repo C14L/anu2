@@ -7,7 +7,9 @@
 </head>
 <body>
 
-  <h1><a href="{% url 'home-html' %}">{% blocktrans trimmed with city_name=city.tr_name %}
+  <p><a href="{% url 'home-html' %}">{% trans 'Cambiar ciudad' %}</a></p>
+
+  <h1><a href="{% url 'category-list-html' city.tr_url %}">{% blocktrans trimmed with city_name=city.tr_name %}
     Anuncios Classificador para {{ city_name }}
   {% endblocktrans %}</a></h1>
 

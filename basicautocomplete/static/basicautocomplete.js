@@ -4,7 +4,6 @@
 
 (function(){
     'use strict';
-    console.log('I am here!');
 
     var ul = document.createElement('ul');
     ul.classList.add('autocomplete-dropdown');
@@ -26,7 +25,11 @@
         for (var i=0, len=optsList.length; i<len; i++) {
             var li = document.createElement('li');
             li.appendChild(document.createTextNode(optsList[i]));
-            li.addEventListener('click', function(event){ elm.value = event.target.innerHTML; removeOptionsList(); });
+            li.addEventListener('click', function(event){
+                elm.value = event.target.innerHTML;
+                removeOptionsList();
+                elm.dispatchEvent(new CustomEvent('AutocompleteItemSelected', { 'view': window, 'bubbles': true, 'detail': elm.value }));
+            });
             ul.appendChild(li);
         }
         parentElm.insertBefore(ul, elm.nextSibling);

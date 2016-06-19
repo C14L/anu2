@@ -1,4 +1,10 @@
 
+window.addEventListener('AutocompleteItemSelected', function(event){
+    event.target.style.display = 'none';
+    event.target.nextElementSibling.style.display = 'none';
+    event.target.parentNode.submit();
+});
+
 function getUserCity() {
     return new Promise(function(resolve, reject) {
         if (window.navigator && window.navigator.geolocation) {
