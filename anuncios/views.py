@@ -1,27 +1,15 @@
-import os
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, Http404
 from django.http.response import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
-from django.utils.translation import get_language
-from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, \
     UpdateView
-from django.views.generic.base import View
-from rest_framework import generics
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from anuncios.forms import PostForm
 from anuncios.models import Post, Category
-from anuncios.serializers import PostSerializer, UserSerializer
-from anuncios.utils import get_category_item
-from dtrcity.models import boundingBox, City, AltName
+from dtrcity.models import City
 
 
 class HomeViewHTML(ListView):

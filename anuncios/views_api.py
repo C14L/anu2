@@ -1,6 +1,23 @@
+import os
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.utils.translation import get_language
+from django.views.generic import View
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from anuncios.models import Post
+from anuncios.serializers import PostSerializer, UserSerializer
+from anuncios.utils import get_category_item
+from dtrcity.models import AltName, City, boundingBox
+
 
 class AppHTMLView(View):
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def get(self, request):
         fn = os.path.join(settings.BASE_DIR, "ng-app", "app.html")
         with open(fn, 'r') as fh:
@@ -9,6 +26,7 @@ class AppHTMLView(View):
 
 class CategoryList(APIView):
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def get(self, request):
         return Response({'location': {},
                          'categories': settings.ANUNCIOS['CATEGORIES']})
@@ -16,6 +34,7 @@ class CategoryList(APIView):
 
 class CategoryDetail(APIView):
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def get(self, request, pk):
         return Response(get_category_item(pk))
 
