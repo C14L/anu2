@@ -7,12 +7,14 @@
 </head>
 <body>
 
-  <h1><a href="{% url 'home-html' %}">{{ user.username }}</a></h1>
+  <p><a href="{% url 'home-html' %}">{% trans 'Regrasar a categorias' %}</a></p>
+
+  <h1><a href="{% url 'user-detail-html' view_user.pk %}">{{ view_user.username }}</a></h1>
 
   <ul>
     {% for object in object_list %}
       <li>
-        {% if object.city %}<a href="{% url 'post-detail-html' object.pk %}">{% endif %}
+        {% if object.city %}<a href="{% url 'post-detail-html' object.pk object.slug %}">{% endif %}
           {{ object.title }}
         {% if object.city %}</a>{% endif %}
         <span style="color: green;">{{ object.city_name }}</span>

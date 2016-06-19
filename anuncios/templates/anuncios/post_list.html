@@ -25,7 +25,7 @@
       <span style="color: gray;">{{ object.city.tr_crc }}</span>
       <span style="color: pink;">{{ object.id }}</span>
       <span style="color: red;">
-        by {% if object.user.pk %}<a href="{% url 'user-post-list-html' object.user.pk %}">user: {{ object.user.pk }}</a>{% else %}anonymous user{% endif %}
+        by {% if object.user.pk %}<a href="{% url 'user-detail-html' object.user.pk %}">user: {{ object.user.pk }}</a>{% else %}anonymous user{% endif %}
       </span>
     </li>
   {% endfor %}
