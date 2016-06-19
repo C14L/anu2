@@ -31,4 +31,3 @@ class PostForm(forms.ModelForm):
             'expires': forms.DateTimeInput(attrs={'type': 'date'}),
             'categories': forms.CheckboxSelectMultiple(),
         }
-

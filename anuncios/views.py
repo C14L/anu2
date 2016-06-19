@@ -1,11 +1,14 @@
 import os
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
+from django.http.response import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.utils.translation import get_language
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, \
     UpdateView
 from django.views.generic.base import View
@@ -51,7 +54,8 @@ class UserPostListHTML(ListView):
     view_user = None
 
     def get_queryset(self):
-        self.view_user = get_object_or_404(User, pk=self.kwargs['user'])
+        self.view_user = get_object_or_404(get_user_model(),
+                                           pk=self.kwargs['user'])
         return Post.objects.by_user(self.view_user)
 
     def get_context_data(self, **kwargs):
@@ -67,7 +71,8 @@ class PostListHTML(ListView):
 
     def get_queryset(self):
         self.city = City.get_by_url(self.kwargs['city'])
-        self.category = get_object_or_404(Category, slug=self.kwargs['category'])
+        self.category = get_object_or_404(Category,
+                                          slug=self.kwargs['category'])
         return Post.objects.by_city_and_category(self.city, self.category)
 
     def get_context_data(self, **kwargs):
@@ -80,6 +85,10 @@ class PostListHTML(ListView):
 class PostCreateHTML(CreateView):
     model = Post
     form_class = PostForm
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        super().__init__(**kwargs)
 
     def get_initial(self):
         categories = self.request.GET.get('c', '').split(',')
@@ -96,12 +105,37 @@ class PostCreateHTML(CreateView):
             'email': email,
         }
 
+    def form_valid(self, form):
+        if self.request.user.is_authenticated():
+            form.instance.user = self.request.user
+            form.instance.email = self.request.user.email
+            form.instance.is_confirmed = True
+            form.instance.is_public = True
+        else:
+            form.instance.email = form.cleaned_data['email'].strip().lower()
+            form.instance.is_confirmed = False
+            form.instance.is_public = True
+
+        response = super().form_valid(form)
+        return response
+
     def get_success_url(self):
-        return reverse('post-detail-html', args=[self.object.pk])
+        _args = [self.object.pk, self.object.slug]
+        return reverse('post-detail-html', args=_args)
 
 
 class PostDetailHTML(DetailView):
     model = Post
+    object = None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.slug != self.kwargs['slug']:
+            _args = [self.object.pk, self.object.slug]
+            _url = reverse('post-detail-html', args=_args)
+            return HttpResponsePermanentRedirect(_url)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         print('self.object.pk === {}'.format(self.object.pk))
@@ -115,7 +149,8 @@ class PostUpdateHTML(UpdateView):
     form_class = PostForm
 
     def get_success_url(self):
-        return reverse('post-detail-html', args=[self.object.pk])
+        _args = [self.object.pk, self.object.slug]
+        return reverse('post-detail-html', args=_args)
 
 
 # # #
@@ -176,7 +211,7 @@ class PostList(generics.ListCreateAPIView):
         lat = self.request.query_params.get('lat', None)
         lng = self.request.query_params.get('lng', None)
         dist = int(self.request.query_params.get('dist', 50))
-        limit = int(self.request.query_params.get('limit', 100))
+        # limit = int(self.request.query_params.get('limit', 100))
         lg = get_language()
 
         # Check for valid category.
@@ -250,7 +285,7 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class UserList(generics.ListCreateAPIView):
 
-    queryset = User.objects.filter(is_active=True)
+    queryset = get_user_model().objects.filter(is_active=True)
     serializer_class = UserSerializer
     page_size = 10
 
@@ -258,4 +293,4 @@ class UserList(generics.ListCreateAPIView):
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
-        return User.objects.get(pk=self.request.pk)
+        return get_user_model().objects.get(pk=self.request.pk)

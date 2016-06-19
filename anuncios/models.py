@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import random
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -15,8 +15,10 @@ from pilkit.processors import ResizeToFit
 from dtrcity.models import City
 
 
-def get_image_path():
-    return 'post-pictures/{0}/{1}'.format(date.today().year, str(uuid4()))
+def get_image_path(instance, filename):
+    year = date.today().year
+    ext = filename.rsplit('.', 1)[1].strip().lower()
+    return 'post-pictures/{0}/{1}.{2}'.format(year, str(uuid4()), ext)
 
 
 def make_username(email):
@@ -34,27 +36,33 @@ class Category(models.Model):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self, country_url):
+        return reverse('post-list-html', args=[country_url, self.pk])
+
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, related_name='profile')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                related_name='profile')
+    is_email_confirmed = models.BooleanField(default=False)
 
 
 class PostQuerySet(models.QuerySet):
 
-    def confirmed_only(self):
-        return self.filter(is_confirmed=True)
+    def published_only(self):
+        return self.filter(is_public=True).filter(is_delete=False)
+            # .filter(is_confirmed=True)
 
-    def by_user(self, user, include_unconfirmed=False):
+    def by_user(self, user, include_unpublished=False):
         # user may be a pk, a username, or a User instance.
         if isinstance(user, int):
-            user = User.objects.get(pk=user)
+            user = settings.AUTH_USER_MODEL.objects.get(pk=user)
         elif isinstance(user, str):
-            user = User.objects.get(username=user)
+            user = settings.AUTH_USER_MODEL.objects.get(username=user)
 
-        if include_unconfirmed:
+        if include_unpublished:
             return self.filter(user=user)
 
-        return self.confirmed_only().filter(user=user)
+        return self.published_only().filter(user=user)
 
     def by_city(self, city):
         # city may be a pk, a url, a crc, or a City instance.
@@ -65,7 +73,7 @@ class PostQuerySet(models.QuerySet):
         elif isinstance(city, str) and city.count('/') == 2:
             city = City.get_by_crc(city)
 
-        return self.confirmed_only().filter(city=city)
+        return self.published_only().filter(city=city)
 
     def by_category(self, category):
         # category may be a pk, a slug, or a Category instance.
@@ -74,7 +82,7 @@ class PostQuerySet(models.QuerySet):
         elif isinstance(category, str):
             category = Category.objects.get(slug=category)
 
-        return self.confirmed_only().filter(categories=category)
+        return self.published_only().filter(categories=category)
 
     def by_city_and_category(self, city, category):
         return self.by_city(city).by_category(category)
@@ -86,7 +94,9 @@ class Post(models.Model):
     CATEGORY_CHOICES = [(x['slug'], x['title']) for x in getattr(
         settings.ANUNCIOS, 'CATEGORIES', []) if x['parent'] != '']
 
-    user = models.ForeignKey(User, db_index=True, null=True, default=None)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             db_index=True, null=True, default=None)
+    email = models.EmailField(null=True, default=None, blank=True)
 
     categories = models.ManyToManyField(Category, related_name='posts')
 
@@ -168,12 +178,19 @@ class Post(models.Model):
             self.expires_days = 90
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('post-detail-html', args=[self.pk])
+
     def set_pin(self):
         """Only set empty self.pin to a random string."""
         if not self.pin:
             ch = string.ascii_uppercase
             length = Post._meta.get_field('pin').max_length
             self.pin = ''.join(random.choice(ch) for _ in range(length))
+
+    @property
+    def slug(self):
+        return slugify(self.title)[:80]
 
     @property
     def expires_days(self):
@@ -200,7 +217,7 @@ class Post(models.Model):
 
 
 class Inbox(models.Model):
-    user = models.ForeignKey(User, db_index=True)         # receipient
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)  # receipient
     name = models.CharField(max_length=200, default='')   # req. sender name
     email = models.CharField(max_length=200, default='')  # opt. sender email
     phone = models.CharField(max_length=200, default='')  # opt. sender phone

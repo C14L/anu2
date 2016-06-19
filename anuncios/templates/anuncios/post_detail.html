@@ -6,7 +6,7 @@
     <title>Title</title>
   </head>
   <body>
-    <h1><a href="{% url 'home-html' %}">{{ object.title }}</a></h1>
+    <h1><a href="{% url 'post-detail-html' object.pk object.slug %}">{{ object.title }}</a></h1>
 
     <p>{{ object.text }}</p>
 
@@ -18,10 +18,36 @@
     </p>
 
     <ul>
+      <li>Email: {{ object.user.email|default:"--none provided--" }}</li>
+      <li>Confirmed: {{ object.user.is_email_confirmed|yesno }}</li>
+      <li>Pin: {{ object.pin }}</li>
+    </ul>
+
+    <ul>
       <li>Created: {{ object.created|date }}</li>
       <li>Last updated: {{ object.updated|date }}</li>
       <li>Published: {{ object.publish|date }}</li>
       <li>Expires: {{ object.expires|date }}</li>
+    </ul>
+
+    <ul>
+      <li>Views #: {{ object.count_views }}</li>
+      <li>Updates #: {{ object.count_updates }}</li>
+      <li>Messages #: {{ object.count_messages }}</li>
+    </ul>
+
+    <ul>
+      <li>NSFW: {{ object.is_nsfw }}</li>
+      <li>Confirmed: {{ object.is_confirmed }}</li>
+      <li>Public: {{ object.is_public }}</li>
+      <li>Delete: {{ object.is_delete }}</li>
+    </ul>
+
+    <ul>
+      <li><img src="{{ MEDIA_URL }}{{ object.pic_1 }}" alt="Pic 1" style="max-height: 100px"></li>
+      <li><img src="{{ MEDIA_URL }}{{ object.pic_2 }}" alt="Pic 2" style="max-height: 100px"></li>
+      <li><img src="{{ MEDIA_URL }}{{ object.pic_3 }}" alt="Pic 3" style="max-height: 100px"></li>
+      <li><img src="{{ MEDIA_URL }}{{ object.pic_4 }}" alt="Pic 4" style="max-height: 100px"></li>
     </ul>
 
     <p><a href="{% url 'post-update-html' object.pk %}">{% trans 'edit' %}</a></p>

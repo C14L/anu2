@@ -8,7 +8,9 @@
 <body>
 
   <h1><a href="{% url 'category-list-html' city.tr_url %}">{{ category.title }} in {{ city.tr_name }}</a></h1>
-  
+
+  <p>category: {{category.pk}} -- city: {{city.pk}}</p>
+
   <p><a href="{% url 'post-create-html' %}?c={{ category.slug }}&l={{ city.pk }}">{% blocktrans %}
     Agrega un anuncio
   {% endblocktrans %}</a></p>
@@ -16,7 +18,7 @@
 <ul>
   {% for object in object_list %}
     <li>
-      {% if object.city %}<a href="{% url 'post-detail-html' object.pk %}">{% endif %}
+      {% if object.city %}<a href="{% url 'post-detail-html' object.pk object.slug %}">{% endif %}
         {{ object.title }}
       {% if object.city %}</a>{% endif %}
       <span style="color: green;">{{ object.city_name }}</span>
