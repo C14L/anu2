@@ -75,9 +75,10 @@ class PostListHTML(ListView):
 
     def get_queryset(self):
         self.city = City.get_by_url(self.kwargs['city'])
-        self.category = get_object_or_404(Category,
-                                          slug=self.kwargs['category'])
-        return Post.objects.by_city_and_category(self.city, self.category)
+        _cities = City.get_cities_around_city(self.city, dist=25)
+        _category = self.kwargs['category']
+        self.category = get_object_or_404(Category, slug=_category)
+        return Post.objects.by_category(self.category).filter(city__in=_cities)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -99,7 +100,7 @@ class PostCreateHTML(CreateView):
         city_pk = self.request.GET.get('l', '')
         email = ''
         if self.request.user.is_authenticated():
-            email = self.request.user.email
+            email = self.request.user.email  # pre-fill with auth user email
 
         return {
             'categories': Category.objects.filter(slug__in=categories),
@@ -112,11 +113,10 @@ class PostCreateHTML(CreateView):
     def form_valid(self, form):
         if self.request.user.is_authenticated():
             form.instance.user = self.request.user
-            form.instance.email = self.request.user.email
+            form.instance.email = self.request.user.email  # override
             form.instance.is_confirmed = True
             form.instance.is_public = True
         else:
-            form.instance.email = form.cleaned_data['email'].strip().lower()
             form.instance.is_confirmed = False
             form.instance.is_public = True
 
