@@ -1,14 +1,17 @@
+{% load anuncios_tags %}
 {% load i18n %}
+{% load markdown_deux_tags %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{ object.title }}</title>
+    <link rel="canonical" href="{% url 'post-detail-html' object.pk object.slug %}">
   </head>
   <body>
-    <h1><a href="{% url 'post-detail-html' object.pk object.slug %}">{{ object.title }}</a></h1>
+    <h1><a href="{% url 'post-detail-html' object.pk object.slug %}">{{ object.title|personal_data_filter }}</a></h1>
 
-    <p>{{ object.text }}</p>
+    <p>{{ object.text|personal_data_filter|markdown }}</p>
 
     <p>
       Categories:
@@ -18,7 +21,7 @@
     </p>
 
     <ul>
-      <li>Email: {{ object.user.email|default:"--none provided--" }}</li>
+      <li>Email: {{ object.email|default:"--none provided--" }}</li>
       <li>Confirmed: {{ object.user.is_email_confirmed|yesno }}</li>
       <li>Pin: {{ object.pin }}</li>
     </ul>
@@ -44,10 +47,10 @@
     </ul>
 
     <ul>
-      <li><img src="{{ MEDIA_URL }}{{ object.pic_1 }}" alt="Pic 1" style="max-height: 100px"></li>
-      <li><img src="{{ MEDIA_URL }}{{ object.pic_2 }}" alt="Pic 2" style="max-height: 100px"></li>
-      <li><img src="{{ MEDIA_URL }}{{ object.pic_3 }}" alt="Pic 3" style="max-height: 100px"></li>
-      <li><img src="{{ MEDIA_URL }}{{ object.pic_4 }}" alt="Pic 4" style="max-height: 100px"></li>
+      {% if object.pic_1 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_1 }}" alt="Pic 1" style="max-height: 100px"></li>{% endif %}
+      {% if object.pic_2 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_2 }}" alt="Pic 2" style="max-height: 100px"></li>{% endif %}
+      {% if object.pic_3 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_3 }}" alt="Pic 3" style="max-height: 100px"></li>{% endif %}
+      {% if object.pic_4 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_4 }}" alt="Pic 4" style="max-height: 100px"></li>{% endif %}
     </ul>
 
     <p><a href="{% url 'post-update-html' object.pk %}">{% trans 'edit' %}</a></p>
