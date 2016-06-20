@@ -1,32 +1,31 @@
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ object.title }}</title>
+    <link rel="canonical" href="{% url 'category-list-html' city.tr_url %}">
+  </head>
+  <body>
+    <p><a href="{% url 'home-html' %}">{% trans 'Cambiar ciudad' %}</a></p>
 
-  <p><a href="{% url 'home-html' %}">{% trans 'Cambiar ciudad' %}</a></p>
+    <h1><a href="{% url 'category-list-html' city.tr_url %}">{% blocktrans trimmed with city_name=city.tr_name %}
+      Anuncios Classificador para {{ city_name }}
+    {% endblocktrans %}</a></h1>
 
-  <h1><a href="{% url 'category-list-html' city.tr_url %}">{% blocktrans trimmed with city_name=city.tr_name %}
-    Anuncios Classificador para {{ city_name }}
-  {% endblocktrans %}</a></h1>
+    <p>{% blocktrans trimmed with city_crc=city.get_crc %}
+      {{ city_crc }}
+    {% endblocktrans %}</p>
 
-  <p>{% blocktrans trimmed with city_crc=city.get_crc %}
-    {{ city_crc }}
-  {% endblocktrans %}</p>
-
-  {% for grouping in grouping_list %}
-    <h2>{{ grouping.title }}</h2>
-    <ul>
-      {% for category in object_list %}
-        {% if category.parent == grouping.slug %}
-          <li><a href="{% url 'post-list-html' city.tr_url category.slug %}">{{ category.title }}</a></li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  {% endfor %}
-
-</body>
+    {% for grouping in grouping_list %}
+      <h2>{{ grouping.title }}</h2>
+      <ul>
+        {% for category in object_list %}
+          {% if category.parent == grouping.slug %}
+            <li><a href="{% url 'post-list-html' city.tr_url category.slug %}">{{ category.title }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </body>
 </html>
