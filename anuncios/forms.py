@@ -16,11 +16,20 @@ def _get_city_by_crc(crc):
     return City.get_by_crc(crc)
 
 
+def normalize_email(email):
+    try:
+        email_name, domain_part = email.strip().rsplit('@', 1)
+    except ValueError:
+        pass
+    else:
+        email = '@'.join([email_name, domain_part.lower()])
+    return email
+
+
 class PostForm(forms.ModelForm):
     city = AutocompleteField(_get_city_by_crc,
                              _get_city_crc_by_pk,
                              reverse_lazy('city_autocomplete_crc'))
-    email = forms.EmailField()
 
     class Meta:
         model = Post
@@ -31,3 +40,8 @@ class PostForm(forms.ModelForm):
             'expires': forms.DateTimeInput(attrs={'type': 'date'}),
             'categories': forms.CheckboxSelectMultiple(),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data['email'] = normalize_email(cleaned_data['email'])
+        return cleaned_data
