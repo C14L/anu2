@@ -8,6 +8,8 @@ from dtrcity.models import City
 
 def _get_city_crc_by_pk(pk):
     """Return the string to be displayed in the <input> field."""
+    if isinstance(pk, str):
+        return pk
     return City.objects.get(pk=pk).tr_crc
 
 
