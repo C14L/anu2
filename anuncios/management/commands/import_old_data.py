@@ -1,5 +1,4 @@
 import csv
-import sys
 
 from dateutil.parser import parse
 from django.conf import settings
@@ -21,8 +20,7 @@ class Command(BaseCommand):
     user_tr = []
 
     def handle(self, *args, **options):
-
-        """print('Deleting current entries...')
+        print('Deleting current entries...')
         input('-- Press RETURN to start --')
         User.objects.all().delete()
         print('- deleted User objects, '
@@ -37,7 +35,6 @@ class Command(BaseCommand):
         print('Users imported: {}'.format(User.objects.all().count()))
         print('Created user_id map with {} entries.'.format(len(self.user_tr)))
         print('')
-        """
         print('Importing all posts...')
         input('-- Press RETURN to start --')
         self.import_ads()
