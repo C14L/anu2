@@ -4,10 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <style>
+    .is-expired { text-decoration: line-through; opacity: 0.5; }
+  </style>
 </head>
 <body>
 
-  <h1><a href="{% url 'category-list-html' city.tr_url %}">{{ category.title }} in {{ city.tr_name }}</a></h1>
+  <h1><a href="{% url 'category-list-html' city.tr_url %}">Clasificados {{ city.tr_name }}: {{ category.title }}</a></h1>
 
   <p>category: {{category.pk}} -- city: {{city.pk}}</p>
 
@@ -17,7 +20,7 @@
 
 <ul>
   {% for object in object_list %}
-    <li>
+    <li class="{% if object.expires < datetime %} is-expired {% else %} is-active {% endif %}">
       {% if object.city %}<a href="{% url 'post-detail-html' object.pk object.slug %}">{% endif %}
         {{ object.title }}
       {% if object.city %}</a>{% endif %}

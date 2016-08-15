@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
+from django.db.models.expressions import ExpressionWrapper
+from django.db.models.fields import BooleanField
 from django.http.response import HttpResponsePermanentRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
@@ -84,6 +86,7 @@ class PostListHTML(ListView):
         context = super().get_context_data(**kwargs)
         context['city'] = self.city
         context['category'] = self.category
+        context['datetime'] = now()
         return context
 
 
@@ -145,6 +148,7 @@ class PostDetailHTML(DetailView):
         print('self.object.pk === {}'.format(self.object.pk))
         context = super().get_context_data(**kwargs)
         context['city'] = self.object.city
+        context['datetime'] = now()
         return context
 
 

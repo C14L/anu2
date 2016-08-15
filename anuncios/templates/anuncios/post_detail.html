@@ -7,52 +7,62 @@
     <meta charset="UTF-8">
     <title>{{ object.title }}</title>
     <link rel="canonical" href="{% url 'post-detail-html' object.pk object.slug %}">
+    <style>
+      .is-expired { opacity: 0.5; }
+      .is-expired-warning { font-size: 2rem; padding: 0.5rem; color: white; background-color: red; }
+    </style>
   </head>
   <body>
-    <h1><a href="{% url 'post-detail-html' object.pk object.slug %}">{{ object.title|personal_data_filter }}</a></h1>
+    {% if object.expires < datetime %}
+      <div class="is-expired-warning">this as is expired</div>
+    {% endif %}
 
-    <p>{{ object.text|personal_data_filter|markdown }}</p>
+    <main class="{% if object.expires < datetime %} is-expired {% else %} is-active {% endif %}">
+      <h1><a href="{% url 'post-detail-html' object.pk object.slug %}">{{ object.title|personal_data_filter }}</a></h1>
 
-    <p>
-      Categories:
-      {% for cat in object.categories.all %}
-        <a href="{% url 'post-list-html' object.city.tr_url cat.slug %}">{{ cat.title }}</a>
-      {% endfor %}
-    </p>
+      <p>{{ object.text|personal_data_filter|markdown }}</p>
 
-    <ul>
-      <li>Email: {{ object.email|default:"--none provided--" }}</li>
-      <li>Confirmed: {{ object.user.is_email_confirmed|yesno }}</li>
-      <li>Pin: {{ object.pin }}</li>
-    </ul>
+      <p>
+        Categories:
+        {% for cat in object.categories.all %}
+          <a href="{% url 'post-list-html' object.city.tr_url cat.slug %}">{{ cat.title }}</a>
+        {% endfor %}
+      </p>
 
-    <ul>
-      <li>Created: {{ object.created|date }}</li>
-      <li>Last updated: {{ object.updated|date }}</li>
-      <li>Published: {{ object.publish|date }}</li>
-      <li>Expires: {{ object.expires|date }}</li>
-    </ul>
+      <ul>
+        <li>Email: {{ object.email|default:"--none provided--" }}</li>
+        <li>Confirmed: {{ object.user.is_email_confirmed|yesno }}</li>
+        <li>Pin: {{ object.pin }}</li>
+      </ul>
 
-    <ul>
-      <li>Views #: {{ object.count_views }}</li>
-      <li>Updates #: {{ object.count_updates }}</li>
-      <li>Messages #: {{ object.count_messages }}</li>
-    </ul>
+      <ul>
+        <li>Created: {{ object.created|date }}</li>
+        <li>Last updated: {{ object.updated|date }}</li>
+        <li>Published: {{ object.publish|date }}</li>
+        <li>Expires: {{ object.expires|date }}</li>
+      </ul>
 
-    <ul>
-      <li>NSFW: {{ object.is_nsfw }}</li>
-      <li>Confirmed: {{ object.is_confirmed }}</li>
-      <li>Public: {{ object.is_public }}</li>
-      <li>Delete: {{ object.is_delete }}</li>
-    </ul>
+      <ul>
+        <li>Views #: {{ object.count_views }}</li>
+        <li>Updates #: {{ object.count_updates }}</li>
+        <li>Messages #: {{ object.count_messages }}</li>
+      </ul>
 
-    <ul>
-      {% if object.pic_1 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_1 }}" alt="Pic 1" style="max-height: 100px"></li>{% endif %}
-      {% if object.pic_2 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_2 }}" alt="Pic 2" style="max-height: 100px"></li>{% endif %}
-      {% if object.pic_3 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_3 }}" alt="Pic 3" style="max-height: 100px"></li>{% endif %}
-      {% if object.pic_4 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_4 }}" alt="Pic 4" style="max-height: 100px"></li>{% endif %}
-    </ul>
+      <ul>
+        <li>NSFW: {{ object.is_nsfw }}</li>
+        <li>Confirmed: {{ object.is_confirmed }}</li>
+        <li>Public: {{ object.is_public }}</li>
+        <li>Delete: {{ object.is_delete }}</li>
+      </ul>
 
-    <p><a href="{% url 'post-update-html' object.pk %}">{% trans 'edit' %}</a></p>
+      <ul>
+        {% if object.pic_1 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_1 }}" alt="Pic 1" style="max-height: 100px"></li>{% endif %}
+        {% if object.pic_2 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_2 }}" alt="Pic 2" style="max-height: 100px"></li>{% endif %}
+        {% if object.pic_3 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_3 }}" alt="Pic 3" style="max-height: 100px"></li>{% endif %}
+        {% if object.pic_4 %}<li><img src="{{ MEDIA_URL }}{{ object.pic_4 }}" alt="Pic 4" style="max-height: 100px"></li>{% endif %}
+      </ul>
+
+      <p><a href="{% url 'post-update-html' object.pk %}">{% trans 'edit' %}</a></p>
+    </main>
   </body>
 </html>
